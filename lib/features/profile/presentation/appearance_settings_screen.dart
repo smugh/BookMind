@@ -222,7 +222,7 @@ class AppearanceSettingsScreen extends ConsumerWidget {
                                 fit: BoxFit.cover,
                               )
                             : Image.asset(
-                                'assets/images/onboarding_reader.png',
+                                'assets/images/onboarding_cover_prd.png',
                                 fit: BoxFit.cover,
                               ),
                         Container(

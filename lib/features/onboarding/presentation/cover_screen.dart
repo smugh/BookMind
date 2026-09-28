@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -6,8 +7,6 @@ import '../../../app/main_navigation_shell.dart';
 import '../../../core/localization/app_strings.dart';
 import '../../../core/services/app_settings_service.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
-import '../../../shared/widgets/bookmind_logo.dart';
 
 class CoverScreen extends ConsumerStatefulWidget {
   const CoverScreen({super.key});
@@ -36,7 +35,7 @@ class _CoverScreenState extends ConsumerState<CoverScreen> {
         return FileImage(File(customPath));
       }
     }
-    return const AssetImage('assets/images/onboarding_reader.png');
+    return const AssetImage('assets/images/onboarding_cover_prd.png');
   }
 
   @override
@@ -50,7 +49,7 @@ class _CoverScreenState extends ConsumerState<CoverScreen> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // 1. Full Page Background Image
+          // 1. Full Page Background Image (PRD cover or user custom photo)
           Image(
             image: coverImage,
             fit: BoxFit.cover,
@@ -73,42 +72,111 @@ class _CoverScreenState extends ConsumerState<CoverScreen> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Colors.black.withOpacity(0.40),
-                  Colors.black.withOpacity(0.25),
-                  Colors.black.withOpacity(0.75),
+                  Colors.black.withOpacity(0.45),
+                  Colors.black.withOpacity(0.15),
+                  Colors.black.withOpacity(0.60),
                   const Color(0xFF160E0A).withOpacity(0.95),
                 ],
-                stops: const [0.0, 0.35, 0.70, 1.0],
+                stops: const [0.0, 0.30, 0.65, 1.0],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
             ),
           ),
 
-          // 3. Screen Content (Safe area)
+          // 3. Screen Content
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Top Brand Bar (No skip button)
-                  const Row(
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      BookMindLogo(
-                        iconSize: 26,
-                        style: BookMindLogoStyle.horizontal,
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF2C221C).withOpacity(0.70),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: const Color(0xFFE07A5F).withOpacity(0.35),
+                          ),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.auto_stories,
+                              size: 16,
+                              color: Color(0xFFE07A5F),
+                            ),
+                            SizedBox(width: 7),
+                            Text(
+                              'BookMind',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Language Switcher Chip
+                      GestureDetector(
+                        onTap: () {
+                          final newLang = lang == 'id' ? 'en' : 'id';
+                          ref.read(appSettingsProvider.notifier).setLanguage(newLang);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF2C221C).withOpacity(0.75),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: const Color(0xFFE07A5F).withOpacity(0.40),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                lang == 'id' ? '🇮🇩 ID' : '🇬🇧 EN',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Icon(
+                                Icons.swap_horiz,
+                                size: 14,
+                                color: Colors.white.withOpacity(0.7),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ],
                   ),
 
-                  const Spacer(flex: 2),
+                  const Spacer(),
 
                   // Tagline Pill Badge
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 6,
+                      horizontal: 12,
+                      vertical: 5,
                     ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFE07A5F).withOpacity(0.25),
@@ -120,52 +188,19 @@ class _CoverScreenState extends ConsumerState<CoverScreen> {
                     child: Text(
                       AppStrings.tr('cover_badge', lang),
                       style: const TextStyle(
-                        fontSize: 12,
+                        fontSize: 11,
                         fontWeight: FontWeight.w600,
                         color: Color(0xFFFFD4C7),
                         letterSpacing: 0.2,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
-
-                  // Headline Serif
-                  Text(
-                    AppStrings.tr('cover_headline', lang),
-                    style: AppTypography.displayLarge.copyWith(
-                      fontSize: 32,
-                      height: 1.22,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                      shadows: [
-                        Shadow(
-                          color: Colors.black.withOpacity(0.6),
-                          blurRadius: 12,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                  ),
                   const SizedBox(height: 12),
 
-                  // Subtitle
-                  Text(
-                    AppStrings.tr('cover_subtitle', lang),
-                    style: AppTypography.bodyLarge.copyWith(
-                      fontSize: 14,
-                      height: 1.5,
-                      color: const Color(0xFFE8DFD8),
-                      shadows: [
-                        Shadow(
-                          color: Colors.black.withOpacity(0.7),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                  ),
+                  // Motivational Quotes Carousel (Multiple Quotes to inspire user)
+                  _MotivationalQuotesCarousel(lang: lang),
 
-                  const Spacer(flex: 1),
+                  const SizedBox(height: 18),
 
                   // Sole Interactive Element: Slide to Start Button
                   Center(
@@ -178,7 +213,7 @@ class _CoverScreenState extends ConsumerState<CoverScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 14),
 
                   // Creator Information in Footer
                   Center(
@@ -203,8 +238,195 @@ class _CoverScreenState extends ConsumerState<CoverScreen> {
   }
 }
 
+/// Motivational Quotes Carousel Widget
+/// Cycles through inspiring quotes encouraging reading as an essential life habit
+class _MotivationalQuotesCarousel extends StatefulWidget {
+  final String lang;
+
+  const _MotivationalQuotesCarousel({required this.lang});
+
+  @override
+  State<_MotivationalQuotesCarousel> createState() =>
+      _MotivationalQuotesCarouselState();
+}
+
+class _MotivationalQuotesCarouselState
+    extends State<_MotivationalQuotesCarousel> {
+  late final PageController _pageController;
+  int _currentIndex = 0;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+    _startAutoSlide();
+  }
+
+  void _startAutoSlide() {
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(milliseconds: 5500), (timer) {
+      if (!mounted) return;
+      final quotes = AppStrings.getMotivationalQuotes(widget.lang);
+      if (quotes.isEmpty) return;
+      final nextPage = (_currentIndex + 1) % quotes.length;
+      _pageController.animateToPage(
+        nextPage,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOut,
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final quotes = AppStrings.getMotivationalQuotes(widget.lang);
+
+    return Container(
+      constraints: const BoxConstraints(minHeight: 165),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E1713).withOpacity(0.82),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: const Color(0xFFE07A5F).withOpacity(0.35),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.40),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(17),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header Bar of Quote Card
+            Padding(
+              padding: const EdgeInsets.only(left: 14, right: 14, top: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.format_quote_rounded,
+                        color: Color(0xFFE07A5F),
+                        size: 20,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        AppStrings.tr('motivation_header', widget.lang),
+                        style: const TextStyle(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.1,
+                          color: Color(0xFFFFD4C7),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Text(
+                    '${_currentIndex + 1}/${quotes.length}',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white.withOpacity(0.55),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Quote Page View
+            SizedBox(
+              height: 104,
+              child: PageView.builder(
+                controller: _pageController,
+                onPageChanged: (index) {
+                  setState(() {
+                    _currentIndex = index;
+                  });
+                },
+                itemCount: quotes.length,
+                itemBuilder: (context, index) {
+                  final item = quotes[index];
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          '“${item['quote']}”',
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 13.5,
+                            height: 1.45,
+                            fontStyle: FontStyle.italic,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFFFBF8F5),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          '— ${item['tag']}',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFFE07A5F).withOpacity(0.95),
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+
+            // Dot Indicators
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(quotes.length, (index) {
+                  final isActive = index == _currentIndex;
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    margin: const EdgeInsets.symmetric(horizontal: 3),
+                    width: isActive ? 18 : 6,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: isActive
+                          ? const Color(0xFFE07A5F)
+                          : Colors.white.withOpacity(0.25),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  );
+                }),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// Interactive Sliding Button with Arrow knob
-/// The ONLY active interactive element on CoverScreen
+/// The ONLY active interactive element on CoverScreen to navigate to Home
 class _SlideToStartButton extends StatefulWidget {
   final String guideText;
   final VoidCallback onSlideComplete;
@@ -278,85 +500,86 @@ class _SlideToStartButtonState extends State<_SlideToStartButton>
       builder: (context, constraints) {
         final double maxDrag = constraints.maxWidth - knobSize - 8.0;
 
-        return Container(
-          width: double.infinity,
-          height: buttonHeight,
-          decoration: BoxDecoration(
-            color: const Color(0xFF2C221C).withOpacity(0.85),
-            borderRadius: BorderRadius.circular(buttonHeight / 2),
-            border: Border.all(
-              color: const Color(0xFFE07A5F).withOpacity(0.40),
-              width: 1.5,
+        return GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => _completeSlide(maxDrag),
+          onHorizontalDragUpdate: (details) {
+            setState(() {
+              _dragPosition =
+                  (_dragPosition + details.delta.dx).clamp(0.0, maxDrag);
+            });
+          },
+          onHorizontalDragEnd: (details) {
+            if (_dragPosition >= maxDrag * 0.35) {
+              _completeSlide(maxDrag);
+            } else {
+              _springBack();
+            }
+          },
+          child: Container(
+            width: double.infinity,
+            height: buttonHeight,
+            decoration: BoxDecoration(
+              color: const Color(0xFF2C221C).withOpacity(0.85),
+              borderRadius: BorderRadius.circular(buttonHeight / 2),
+              border: Border.all(
+                color: const Color(0xFFE07A5F).withOpacity(0.40),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.35),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                ),
+              ],
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.35),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
-          child: Stack(
-            alignment: Alignment.centerLeft,
-            children: [
-              // Sliding background highlight fill
-              Positioned(
-                left: 0,
-                top: 0,
-                bottom: 0,
-                width: _dragPosition + (knobSize / 2) + 4,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryTerracotta.withOpacity(0.35),
-                    borderRadius: BorderRadius.circular(buttonHeight / 2),
+            child: Stack(
+              alignment: Alignment.centerLeft,
+              children: [
+                // Sliding background highlight fill
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: _dragPosition + (knobSize / 2) + 4,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryTerracotta.withOpacity(0.35),
+                      borderRadius: BorderRadius.circular(buttonHeight / 2),
+                    ),
                   ),
                 ),
-              ),
 
-              // Centered Guidance Text with arrow chevrons
-              Positioned.fill(
-                child: Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        widget.guideText,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white.withOpacity(0.85),
-                          letterSpacing: 0.4,
+                // Centered Guidance Text with arrow chevrons
+                Positioned.fill(
+                  child: Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          widget.guideText,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white.withOpacity(0.85),
+                            letterSpacing: 0.4,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Icon(
-                        Icons.double_arrow_rounded,
-                        size: 16,
-                        color: AppColors.primaryTerracotta.withOpacity(0.95),
-                      ),
-                    ],
+                        const SizedBox(width: 8),
+                        Icon(
+                          Icons.double_arrow_rounded,
+                          size: 16,
+                          color: AppColors.primaryTerracotta.withOpacity(0.95),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
 
-              // Draggable Arrow Knob
-              Positioned(
-                left: 4.0 + _dragPosition,
-                child: GestureDetector(
-                  onTap: () => _completeSlide(maxDrag),
-                  onHorizontalDragUpdate: (details) {
-                    setState(() {
-                      _dragPosition =
-                          (_dragPosition + details.delta.dx).clamp(0.0, maxDrag);
-                    });
-                  },
-                  onHorizontalDragEnd: (details) {
-                    if (_dragPosition >= maxDrag * 0.60) {
-                      _completeSlide(maxDrag);
-                    } else {
-                      _springBack();
-                    }
-                  },
+                // Arrow Knob
+                Positioned(
+                  left: 4.0 + _dragPosition,
                   child: Container(
                     width: knobSize,
                     height: knobSize,
@@ -384,8 +607,8 @@ class _SlideToStartButtonState extends State<_SlideToStartButton>
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },

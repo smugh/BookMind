@@ -51,6 +51,17 @@ class AppStrings {
       'lang_id': 'Bahasa Indonesia',
       'lang_en': 'English',
       'close': 'Tutup',
+      'motivation_header': 'MOTIVASI MEMBACA',
+      'quote_1': 'Jadikan membaca jendela untuk bertumbuh setiap hari. Satu halaman kecil membuka cakrawala tak terbatas.',
+      'quote_tag_1': 'Inspirasi Bertumbuh',
+      'quote_2': 'Membaca bukan sekadar menghabiskan buku, melainkan membiarkan buku memperluas caramu berpikir dan menjalani hidup.',
+      'quote_tag_2': 'Refleksi Diri',
+      'quote_3': 'Buku adalah percakapan paling tenang dengan pikiran-pikiran terhebat sepanjang masa. Buka lembarannya, temukan dirimu.',
+      'quote_tag_3': 'Sahabat Pikiran',
+      'quote_4': 'Luangkan 15 menit hari ini bersama buku. Jadikan membaca napas bagi jiwa dan investasi abadi bagi masa depanmu.',
+      'quote_tag_4': 'Kebiasaan Hidup',
+      'quote_5': 'Setiap kutipan yang kau simpan dan renungkan adalah benih kebijaksanaan yang membentuk versi terbaik dari dirimu.',
+      'quote_tag_5': 'Jejak Pengetahuan',
     },
     'en': {
       'cover_headline': 'Focus Self-Upgrade\nWithout Distractions.',
@@ -103,10 +114,46 @@ class AppStrings {
       'lang_id': 'Bahasa Indonesia',
       'lang_en': 'English',
       'close': 'Close',
+      'motivation_header': 'READING MOTIVATION',
+      'quote_1': 'Make reading a window for daily growth. One small page opens boundless horizons.',
+      'quote_tag_1': 'Growth Inspiration',
+      'quote_2': 'Reading is not merely about finishing books, but allowing books to expand how you think and live.',
+      'quote_tag_2': 'Mindful Reflection',
+      'quote_3': 'A book is a quiet conversation with the greatest minds in history. Open its pages and find yourself.',
+      'quote_tag_3': 'Companion of the Mind',
+      'quote_4': 'Dedicate 15 minutes today with a book. Make reading breath for your soul and a lifelong habit.',
+      'quote_tag_4': 'Daily Habit',
+      'quote_5': 'Every quote you save and reflect upon is a seed of wisdom shaping the best version of who you are.',
+      'quote_tag_5': 'Knowledge Journey',
     },
   };
 
   static String tr(String key, String lang) {
     return _strings[lang]?[key] ?? _strings['id']?[key] ?? key;
+  }
+
+  static List<Map<String, String>> getMotivationalQuotes(String lang) {
+    return [
+      {
+        'quote': tr('quote_1', lang),
+        'tag': tr('quote_tag_1', lang),
+      },
+      {
+        'quote': tr('quote_2', lang),
+        'tag': tr('quote_tag_2', lang),
+      },
+      {
+        'quote': tr('quote_3', lang),
+        'tag': tr('quote_tag_3', lang),
+      },
+      {
+        'quote': tr('quote_4', lang),
+        'tag': tr('quote_tag_4', lang),
+      },
+      {
+        'quote': tr('quote_5', lang),
+        'tag': tr('quote_tag_5', lang),
+      },
+    ];
   }
 }
