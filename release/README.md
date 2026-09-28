@@ -1,6 +1,6 @@
-# 📦 BookMind - Release Distribution Directory
+# 📦 Book&Mind - Release Distribution Directory
 
-Folder ini berisi berkas instalasi aplikasi **BookMind** yang siap rilis dan diunduh langsung untuk pengujian maupun pemasangan di perangkat Android.
+Folder ini berisi berkas instalasi aplikasi **Book&Mind** yang siap rilis dan diunduh langsung untuk pengujian maupun pemasangan di perangkat Android.
 
 ---
 
@@ -14,7 +14,7 @@ Folder ini berisi berkas instalasi aplikasi **BookMind** yang siap rilis dan diu
 | **Ukuran Berkas** | ~34.6 MB |
 | **Target OS** | Android 5.0 (API level 21) ke atas |
 | **Arsitektur** | Universal (`arm64-v8a`, `armeabi-v7a`, `x86_64`) |
-| **SHA-256 Checksum** | `75546cab44a0da064d47d2dd868dfd5dd17b7d4736fe3e1794b62260e58a53c6` |
+| **SHA-256 Checksum** | `cda3dae4677c21bcb8b1042273cb9139cb259a900e245b5c94e1753721c4b081` |
 
 ---
 
@@ -24,7 +24,7 @@ Folder ini berisi berkas instalasi aplikasi **BookMind** yang siap rilis dan diu
 1. Unduh berkas [`BookMind-v1.0.0.apk`](./BookMind-v1.0.0.apk) ke memori ponsel.
 2. Buka berkas APK melalui File Manager atau browser.
 3. Izinkan *"Install unknown apps"* (Pasang aplikasi yang tidak dikenal) pada pengaturan keamanan ponsel jika diminta.
-4. Klik **Install** dan buka aplikasi BookMind.
+4. Klik **Install** dan buka aplikasi Book&Mind.
 
 ### 2. Melalui ADB (Android Debug Bridge):
 Jalankan perintah berikut di terminal:

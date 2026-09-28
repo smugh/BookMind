@@ -1,4 +1,4 @@
-# BookMind
+# Book&Mind
 
 Personal reading knowledge system for Android, built with Flutter and designed to work offline.
 

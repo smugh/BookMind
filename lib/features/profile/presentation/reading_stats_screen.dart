@@ -133,7 +133,7 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'BookMind memerlukan izin akses tanggal dan waktu perangkat Android Anda untuk:',
+              'Book&Mind memerlukan izin akses tanggal dan waktu perangkat Android Anda untuk:',
               style: TextStyle(fontSize: 13, color: AppColors.n700, height: 1.4),
             ),
             const SizedBox(height: 12),

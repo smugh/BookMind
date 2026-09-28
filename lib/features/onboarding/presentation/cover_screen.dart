@@ -117,7 +117,7 @@ class _CoverScreenState extends ConsumerState<CoverScreen> {
                             ),
                             SizedBox(width: 7),
                             Text(
-                              'BookMind',
+                              'Book&Mind',
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,

@@ -1,40 +1,40 @@
 /* ===================================================================
-   BookMind - Ultra-Minimalist & Visual-First Stylesheet
-   Theme: BookMind Color Guide (Coffee, Terracotta, Cream)
+   Book&Mind - Minimalist & Presentable Stylesheet
+   Palette: Coffee (#6B4E3D), Terracotta (#D97757), Cream (#F8EEDD)
+   Neutrals: N900 (#1A1A1A), N700 (#4A4A4A), N500 (#7A7A7A), N300 (#E4E4E0), N100 (#FAFAF8)
    =================================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
 :root {
   --coffee: #6B4E3D;
-  --coffee-dark: #4A3428;
+  --coffee-dark: #453125;
   --terracotta: #D97757;
   --terracotta-dark: #B85839;
   --cream: #F8EEDD;
-  --cream-soft: #FBF8F3;
-  
+  --cream-soft: #FCF8F2;
+  --cream-light: #F7EFE4;
+
   --n900: #1A1A1A;
   --n700: #4A4A4A;
   --n500: #7A7A7A;
-  --n300: #E2E2E0;
+  --n300: #E4E4E0;
   --n200: #EFEFEF;
   --n100: #FAFAF8;
   --white: #FFFFFF;
 
-  --peach: #FDE2D9;
   --font-serif: 'Newsreader', Georgia, serif;
   --font-sans: 'Plus Jakarta Sans', -apple-system, sans-serif;
 
   --container: 1040px;
   --radius-sm: 8px;
   --radius-md: 14px;
-  --radius-lg: 20px;
+  --radius-lg: 24px;
   --radius-full: 9999px;
 
   --shadow-sm: 0 2px 8px rgba(107, 78, 61, 0.04);
   --shadow-md: 0 8px 24px rgba(107, 78, 61, 0.08);
   --shadow-lg: 0 16px 36px rgba(107, 78, 61, 0.12);
-  --shadow-phone: 0 20px 48px -10px rgba(107, 78, 61, 0.22);
 }
 
 *, *::before, *::after {
@@ -78,10 +78,9 @@ img {
 h1, h2, h3, h4 {
   font-family: var(--font-serif);
   color: var(--coffee-dark);
-  line-height: 1.2;
 }
 
-/* Compact Buttons */
+/* Minimal Buttons */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -99,12 +98,12 @@ h1, h2, h3, h4 {
 .btn-terracotta {
   background: var(--terracotta);
   color: var(--white);
-  box-shadow: 0 3px 10px rgba(217, 119, 87, 0.25);
+  box-shadow: 0 4px 12px rgba(217, 119, 87, 0.25);
 }
 
 .btn-terracotta:hover {
   background: var(--terracotta-dark);
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
 .btn-secondary {
@@ -115,17 +114,15 @@ h1, h2, h3, h4 {
 
 .btn-secondary:hover {
   background: #f1e3cc;
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
-/* ===================================================================
-   Navbar (Clean & Minimal)
-   =================================================================== */
+/* Navbar */
 .navbar-wrap {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(250, 250, 248, 0.92);
+  background: rgba(250, 250, 248, 0.94);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--n300);
@@ -140,13 +137,12 @@ h1, h2, h3, h4 {
 
 .brand-logo img {
   height: 32px;
-  width: auto;
 }
 
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 22px;
   list-style: none;
 }
 
@@ -157,7 +153,7 @@ h1, h2, h3, h4 {
   transition: color 0.2s;
 }
 
-.nav-link:hover, .nav-link.active-link {
+.nav-link:hover {
   color: var(--coffee);
 }
 
@@ -167,6 +163,7 @@ h1, h2, h3, h4 {
   padding: 6px 14px;
   border-radius: var(--radius-full);
   border: 1px solid rgba(107, 78, 61, 0.2);
+  transition: all 0.2s;
 }
 
 .guide-pill:hover {
@@ -175,22 +172,86 @@ h1, h2, h3, h4 {
   border-color: var(--terracotta);
 }
 
-.nav-toggle {
-  display: none;
-  font-size: 1.4rem;
-  background: none;
-  border: none;
-  color: var(--coffee);
-  cursor: pointer;
+/* Navbar Actions (Lang Switcher & Download APK) */
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
-/* ===================================================================
-   Hero (Punchy & Visual)
-   =================================================================== */
+.lang-switch-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--cream);
+  border: 1px solid rgba(107, 78, 61, 0.18);
+  border-radius: var(--radius-full);
+  padding: 3px 6px;
+}
+
+.lang-toggle-btn {
+  background: transparent;
+  border: none;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--n500);
+  cursor: pointer;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  transition: all 0.2s ease;
+  font-family: var(--font-sans);
+}
+
+.lang-toggle-btn:hover {
+  color: var(--coffee-dark);
+}
+
+.lang-toggle-btn.active {
+  background: var(--coffee);
+  color: var(--white);
+  box-shadow: 0 1px 4px rgba(107, 78, 61, 0.2);
+}
+
+.lang-divider {
+  font-size: 0.72rem;
+  color: rgba(107, 78, 61, 0.35);
+  user-select: none;
+}
+
+.btn-download-apk {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--terracotta);
+  color: var(--white);
+  padding: 7px 16px;
+  border-radius: var(--radius-full);
+  font-size: 0.82rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 3px 10px rgba(217, 119, 87, 0.25);
+  font-family: var(--font-sans);
+}
+
+.btn-download-apk:hover {
+  background: var(--terracotta-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 14px rgba(217, 119, 87, 0.35);
+}
+
+.btn-download-apk:active {
+  transform: translateY(0);
+}
+
+.btn-download-apk svg {
+  flex-shrink: 0;
+}
+
+/* Hero */
 .hero {
-  padding: 60px 0 70px;
-  background: radial-gradient(circle at 80% 20%, rgba(248, 238, 221, 0.6) 0%, transparent 50%),
-              var(--n100);
+  padding: 55px 0 65px;
 }
 
 .hero-layout {
@@ -210,12 +271,11 @@ h1, h2, h3, h4 {
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.15em;
-  text-transform: uppercase;
   color: var(--terracotta);
 }
 
 .hero-title {
-  font-size: 3.2rem;
+  font-size: 3.1rem;
   font-weight: 700;
   line-height: 1.12;
   color: var(--coffee-dark);
@@ -244,13 +304,13 @@ h1, h2, h3, h4 {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 10px;
-  padding-top: 16px;
+  margin-top: 8px;
+  padding-top: 14px;
   border-top: 1px solid var(--n300);
 }
 
 .pill-item {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 600;
   color: var(--n700);
   background: var(--white);
@@ -264,52 +324,32 @@ h1, h2, h3, h4 {
   justify-content: center;
 }
 
-.phone-mockup {
-  width: 260px;
-  border-radius: 36px;
-  padding: 8px;
-  background: #25201D;
-  box-shadow: var(--shadow-phone);
-  transition: transform 0.25s ease;
+/* Hero Frameless Screen */
+.hero-screen-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.phone-mockup:hover {
-  transform: translateY(-4px);
-}
-
-.phone-mockup img {
+.hero-screen-img {
   width: 100%;
-  border-radius: 28px;
+  max-width: 240px;
+  border-radius: 20px;
+  box-shadow: 0 18px 40px -8px rgba(107, 78, 61, 0.22);
+  border: 1px solid rgba(107, 78, 61, 0.12);
+  background: #FAF8F5;
+  display: block;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-/* ===================================================================
-   Section Headers
-   =================================================================== */
-.section-title-wrap {
-  text-align: center;
-  max-width: 500px;
-  margin: 0 auto 36px;
+.hero-screen-img:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 22px 46px -6px rgba(107, 78, 61, 0.28);
 }
 
-.section-label {
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--terracotta);
-  margin-bottom: 6px;
-}
-
-.section-h2 {
-  font-size: 2.1rem;
-  margin-bottom: 6px;
-}
-
-/* ===================================================================
-   Solusi & Fitur (4 Minimal Cards)
-   =================================================================== */
+/* Minimal 4-Grid Features */
 .features-section {
-  padding: 70px 0;
+  padding: 55px 0;
   background: var(--cream-soft);
   border-top: 1px solid var(--n300);
   border-bottom: 1px solid var(--n300);
@@ -324,13 +364,13 @@ h1, h2, h3, h4 {
 .feat-card {
   background: var(--white);
   border-radius: var(--radius-md);
-  padding: 22px 18px;
+  padding: 20px 18px;
   border: 1px solid rgba(107, 78, 61, 0.08);
   box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  transition: transform 0.2s ease;
+  gap: 6px;
+  transition: transform 0.2s;
 }
 
 .feat-card:hover {
@@ -343,186 +383,377 @@ h1, h2, h3, h4 {
 }
 
 .feat-card h3 {
-  font-size: 1.15rem;
-  font-family: var(--font-serif);
+  font-size: 1.1rem;
 }
 
-.feat-card p {
-  font-size: 0.86rem;
+.feat-card span {
+  font-size: 0.84rem;
   color: var(--n700);
-  line-height: 1.45;
 }
 
-/* ===================================================================
-   Tampilan UI (Visual Focus)
-   =================================================================== */
+/* UI Showcase - Frameless, Tidy & Clean */
 .ui-section {
   padding: 70px 0;
-  background: var(--n100);
+  background: var(--cream-light);
+}
+
+.section-head {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.section-tag {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--terracotta);
+  background: rgba(217, 119, 87, 0.08);
+  padding: 4px 14px;
+  border-radius: 20px;
+  margin-bottom: 8px;
+}
+
+.section-head h2 {
+  font-family: var(--font-serif);
+  font-size: 2.2rem;
+  color: var(--coffee-dark);
+  margin: 0;
+}
+
+.section-sub {
+  font-size: 0.95rem;
+  color: var(--n700);
+  max-width: 580px;
+  margin: 8px auto 0;
+  line-height: 1.5;
 }
 
 .ui-grid-6 {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  gap: 24px;
 }
 
 .ui-card {
   background: var(--white);
-  border-radius: var(--radius-md);
-  padding: 12px;
-  border: 1px solid rgba(107, 78, 61, 0.08);
-  box-shadow: var(--shadow-sm);
-  cursor: pointer;
-  transition: all 0.2s ease;
+  border: 1px solid rgba(107, 78, 61, 0.12);
+  border-radius: 24px;
+  padding: 24px 20px 22px;
+  box-shadow: 0 4px 16px rgba(107, 78, 61, 0.05);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  align-items: center;
+  text-align: center;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  cursor: default;
 }
 
 .ui-card:hover {
   transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--terracotta);
+  box-shadow: 0 14px 32px rgba(107, 78, 61, 0.11);
+  border-color: rgba(217, 119, 87, 0.35);
 }
 
-.ui-thumb {
-  border-radius: 12px;
-  overflow: hidden;
-  background: #F4EBE1;
-  padding: 8px;
-  display: flex;
-  justify-content: center;
-}
-
-.ui-thumb img {
-  border-radius: 10px;
+.ui-card-meta {
+  margin-bottom: 16px;
   width: 100%;
 }
 
-.ui-label {
-  font-size: 0.95rem;
+.ui-card-tag {
+  display: inline-block;
+  font-size: 0.72rem;
   font-weight: 700;
-  color: var(--n900);
-  text-align: center;
+  letter-spacing: 0.08em;
+  color: var(--terracotta);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.ui-card-title {
+  font-family: var(--font-serif);
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--coffee-dark);
+  margin-bottom: 4px;
+}
+
+.ui-card-desc {
+  font-size: 0.8rem;
+  color: var(--n500);
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* Frameless Screenshot Presentation */
+.ui-screen-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.ui-screen-img {
+  width: 100%;
+  max-width: 215px;
+  border-radius: 16px;
+  box-shadow: 0 10px 24px rgba(107, 78, 61, 0.10);
+  border: 1px solid rgba(107, 78, 61, 0.10);
+  background: #FAF8F5;
+  display: block;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.ui-card:hover .ui-screen-img {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px rgba(107, 78, 61, 0.14);
 }
 
 /* ===================================================================
-   User Guideline (Ultra Compact 4 Steps)
+   ENHANCED USER GUIDELINE (Frameless 2-Column Showcase)
    =================================================================== */
 .guideline-section {
-  padding: 70px 0;
+  padding: 70px 0 80px;
   background: var(--cream-soft);
   border-top: 1px solid var(--n300);
 }
 
-.steps-row {
+/* Stepper Navigation Bar */
+.guide-stepper-bar {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
+  gap: 12px;
+  margin-bottom: 28px;
 }
 
-.step-card {
+.g-step-tab {
   background: var(--white);
+  border: 1.5px solid var(--n300);
   border-radius: var(--radius-md);
-  padding: 18px 16px;
-  border: 1px solid rgba(107, 78, 61, 0.1);
-  box-shadow: var(--shadow-sm);
+  padding: 14px 16px;
   cursor: pointer;
-  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   gap: 12px;
+  transition: all 0.22s ease;
+  user-select: none;
 }
 
-.step-card:hover, .step-card.active {
+.g-step-tab:hover {
+  border-color: rgba(217, 119, 87, 0.5);
+  background: #FFFDFB;
+}
+
+.g-step-tab.active {
+  background: var(--white);
   border-color: var(--terracotta);
-  background: #FFFDF9;
+  box-shadow: 0 4px 14px rgba(217, 119, 87, 0.16);
 }
 
-.step-card.active {
-  box-shadow: 0 4px 14px rgba(217, 119, 87, 0.15);
-}
-
-.step-badge {
+.g-num-badge {
   width: 28px;
   height: 28px;
   border-radius: 50%;
   background: var(--n200);
   color: var(--n700);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: all 0.2s;
 }
 
-.step-card.active .step-badge {
+.g-step-tab.active .g-num-badge {
   background: var(--terracotta);
   color: var(--white);
 }
 
-.step-info h4 {
-  font-size: 0.96rem;
+.g-step-title {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--n700);
+  transition: color 0.2s;
+}
+
+.g-step-tab.active .g-step-title {
+  color: var(--coffee-dark);
   font-weight: 700;
-  color: var(--n900);
-  margin-bottom: 2px;
 }
 
-.step-info p {
-  font-size: 0.78rem;
-  color: var(--n500);
-}
-
-/* Guideline Preview Box */
-.guide-display-box {
+/* Main Showcase Card */
+.guide-showcase-card {
   background: var(--white);
   border-radius: var(--radius-lg);
-  padding: 24px;
-  border: 1px solid rgba(107, 78, 61, 0.1);
-  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(107, 78, 61, 0.12);
+  box-shadow: var(--shadow-md);
+  padding: 40px 44px;
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  align-items: center;
+  gap: 40px;
+  position: relative;
+}
+
+/* Left Column: Step Details */
+.guide-info-side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.guide-step-tag {
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--terracotta);
+}
+
+.guide-step-h3 {
+  font-size: 1.9rem;
+  color: var(--coffee-dark);
+  line-height: 1.2;
+}
+
+.guide-step-lead {
+  font-size: 0.98rem;
+  color: var(--n700);
+  line-height: 1.55;
+}
+
+.guide-bullet-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.guide-bullet-item {
   display: flex;
   align-items: center;
-  justify-content: space-around;
-  gap: 24px;
-}
-
-.guide-step-content {
-  display: none;
-  max-width: 420px;
-}
-
-.guide-step-content.active {
-  display: block;
-}
-
-.guide-step-content h3 {
-  font-size: 1.5rem;
+  gap: 10px;
+  font-size: 0.88rem;
+  font-weight: 600;
   color: var(--coffee-dark);
-  margin-bottom: 8px;
 }
 
-.guide-step-content p {
-  font-size: 0.92rem;
+.guide-bullet-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--cream);
+  color: var(--coffee);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  flex-shrink: 0;
+}
+
+/* Nav Buttons inside Step */
+.guide-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
+  padding-top: 16px;
+  border-top: 1px solid var(--n200);
+}
+
+.guide-step-btn {
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid var(--n300);
+  background: var(--white);
   color: var(--n700);
-  line-height: 1.5;
 }
 
-.guide-step-img {
-  max-height: 280px;
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-md);
+.guide-step-btn:hover {
+  background: var(--cream);
+  color: var(--coffee-dark);
+  border-color: rgba(107, 78, 61, 0.2);
 }
 
-/* ===================================================================
-   Footer (Minimal)
-   =================================================================== */
+.guide-step-btn.next-btn {
+  background: var(--coffee);
+  color: var(--white);
+  border-color: var(--coffee);
+}
+
+.guide-step-btn.next-btn:hover {
+  background: var(--coffee-dark);
+}
+
+/* Right Column: Frameless Clean Showcase & Floating Badge */
+.guide-mockup-side {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.guide-screen-wrap {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.guide-screen-img {
+  width: 100%;
+  max-width: 215px;
+  border-radius: 18px;
+  box-shadow: 0 16px 36px rgba(107, 78, 61, 0.16);
+  border: 1px solid rgba(107, 78, 61, 0.12);
+  background: #FAF8F5;
+  display: block;
+  transition: opacity 0.2s ease, transform 0.25s ease;
+}
+
+.guide-screen-img:hover {
+  transform: translateY(-3px);
+}
+
+.guide-floating-badge {
+  position: absolute;
+  bottom: 18px;
+  right: -8px;
+  z-index: 4;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(8px);
+  padding: 9px 14px;
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 24px rgba(107, 78, 61, 0.16);
+  border: 1px solid rgba(107, 78, 61, 0.15);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--coffee-dark);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: floatSubtle 3.5s ease-in-out infinite alternate;
+}
+
+@keyframes floatSubtle {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-6px); }
+}
+
+/* Footer */
 .footer-min {
   background: #25201D;
-  color: rgba(255, 255, 255, 0.65);
-  padding: 30px 0;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 26px 0;
   font-size: 0.82rem;
 }
 
@@ -531,7 +762,7 @@ h1, h2, h3, h4 {
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 14px;
+  gap: 12px;
 }
 
 .footer-brand {
@@ -543,58 +774,34 @@ h1, h2, h3, h4 {
 }
 
 .footer-brand img {
-  height: 24px;
+  height: 22px;
   filter: brightness(0) invert(1);
 }
 
-/* Lightbox Modal */
-.modal-overlay {
+/* Toast Notice */
+.toast-notice {
   position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(4px);
-  z-index: 999;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%) translateY(30px);
+  background: #25201D;
+  color: #FFFFFF;
+  padding: 12px 24px;
+  border-radius: var(--radius-full);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+  font-size: 0.88rem;
+  font-weight: 600;
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
-.modal-overlay.open {
-  display: flex;
-}
-
-.modal-box {
-  background: var(--white);
-  border-radius: var(--radius-lg);
-  max-width: 500px;
-  width: 100%;
-  position: relative;
-  padding: 20px;
-  text-align: center;
-}
-
-.modal-close-btn {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  background: var(--n200);
-  border: none;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 1rem;
-}
-
-.modal-box img {
-  max-height: 400px;
-  margin: 10px auto 14px;
-  border-radius: 10px;
-}
-
-.modal-box h3 {
-  font-size: 1.2rem;
+.toast-notice.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
 }
 
 /* Responsive */
@@ -604,29 +811,25 @@ h1, h2, h3, h4 {
   .hero-cta { justify-content: center; }
   .hero-pills { justify-content: center; }
   .features-grid-4 { grid-template-columns: repeat(2, 1fr); }
-  .ui-grid-6 { grid-template-columns: repeat(2, 1fr); }
-  .steps-row { grid-template-columns: repeat(2, 1fr); }
-  .guide-display-box { flex-direction: column; text-align: center; }
+  .ui-grid-6 { grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  .guide-stepper-bar { grid-template-columns: repeat(2, 1fr); }
+  .guide-showcase-card { grid-template-columns: 1fr; padding: 32px 24px; text-align: center; }
+  .guide-info-side { align-items: center; }
+  .guide-actions-row { justify-content: center; }
+  .guide-floating-badge { right: auto; bottom: -12px; }
+}
+
+@media (max-width: 680px) {
+  .navbar { height: auto; padding: 12px 0; flex-wrap: wrap; gap: 12px; }
+  .nav-links { order: 3; width: 100%; justify-content: center; gap: 14px; }
+  .nav-actions { margin-left: auto; }
 }
 
 @media (max-width: 600px) {
-  .hero-title { font-size: 2.3rem; }
-  .nav-links {
-    display: none;
-    position: absolute;
-    top: 64px;
-    left: 0;
-    right: 0;
-    background: var(--white);
-    flex-direction: column;
-    padding: 16px;
-    box-shadow: var(--shadow-md);
-    gap: 12px;
-  }
-  .nav-links.mobile-open { display: flex; }
-  .nav-toggle { display: block; }
+  .hero-title { font-size: 2.2rem; }
   .features-grid-4 { grid-template-columns: 1fr; }
-  .ui-grid-6 { grid-template-columns: 1fr; }
-  .steps-row { grid-template-columns: 1fr; }
+  .ui-grid-6 { grid-template-columns: 1fr; gap: 18px; }
+  .ui-card { padding: 20px 16px 18px; }
+  .guide-stepper-bar { grid-template-columns: 1fr; }
   .footer-flex { flex-direction: column; text-align: center; }
 }

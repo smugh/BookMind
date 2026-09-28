@@ -1,11 +1,11 @@
 {
-    "name": "bookmind",
-    "short_name": "bookmind",
+    "name": "Book&Mind",
+    "short_name": "Book&Mind",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Book&Mind — Personal Reading Knowledge System",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -8,7 +8,7 @@ class BookMindApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'BookMind',
+      title: 'Book&Mind',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       home: const CoverScreen(),

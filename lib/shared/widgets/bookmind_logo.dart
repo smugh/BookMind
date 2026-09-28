@@ -49,7 +49,7 @@ class BookMindLogo extends StatelessWidget {
     }
 
     final titleText = Text(
-      'BookMind',
+      'Book&Mind',
       style: GoogleFonts.lora(
         fontSize: iconSize * 0.45,
         fontWeight: FontWeight.bold,

@@ -61,7 +61,7 @@ class _ExportNotesSheetState extends ConsumerState<ExportNotesSheet> {
 
   String _generateMarkdown() {
     final buf = StringBuffer();
-    buf.writeln('# 📚 BookMind - Ekspor Catatan & Refleksi');
+    buf.writeln('# 📚 Book&Mind - Ekspor Catatan & Refleksi');
     buf.writeln('Tanggal Ekspor: ${DateTime.now().toLocal()}');
     buf.writeln('Total Catatan: ${_notes.length}\n');
     buf.writeln('---\n');
@@ -83,7 +83,7 @@ class _ExportNotesSheetState extends ConsumerState<ExportNotesSheet> {
 
   String _generatePlainText() {
     final buf = StringBuffer();
-    buf.writeln('BOOKMIND - EKSPOR CATATAN & REFLEKSI');
+    buf.writeln('BOOK&MIND - EKSPOR CATATAN & REFLEKSI');
     buf.writeln('Tanggal Ekspor: ${DateTime.now().toLocal()}');
     buf.writeln('Total Catatan: ${_notes.length}');
     buf.writeln('========================================\n');
@@ -115,7 +115,7 @@ class _ExportNotesSheetState extends ConsumerState<ExportNotesSheet> {
       final text = isMarkdown ? _generateMarkdown() : _generatePlainText();
       final ext = isMarkdown ? 'md' : 'txt';
       final fileName =
-          'bookmind_notes_${DateTime.now().millisecondsSinceEpoch}.$ext';
+          'book_and_mind_notes_${DateTime.now().millisecondsSinceEpoch}.$ext';
 
       String savedPath;
       if (kIsWeb) {
