@@ -1,5 +1,8 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/services/app_settings_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/responsive.dart';
@@ -78,32 +81,53 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
           const SizedBox(width: 4),
           // Profile Avatar matching Screen 3 top right
-          GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ProfileScreen()),
+          Consumer(
+            builder: (context, ref, child) {
+              final settings = ref.watch(appSettingsProvider);
+              final hasCustomProfile = settings.profileImagePath != null &&
+                  settings.profileImagePath!.isNotEmpty &&
+                  !kIsWeb &&
+                  File(settings.profileImagePath!).existsSync();
+
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                  );
+                },
+                child: Container(
+                  margin: const EdgeInsets.only(right: 20),
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: const Color(0xFFFDE2D9),
+                    border: Border.all(
+                      color: AppColors.primaryTerracotta,
+                      width: 1.5,
+                    ),
+                  ),
+                  child: ClipOval(
+                    child: hasCustomProfile
+                        ? Image.file(
+                            File(settings.profileImagePath!),
+                            fit: BoxFit.cover,
+                          )
+                        : const Center(
+                            child: Text(
+                              'NP',
+                              style: TextStyle(
+                                color: AppColors.primaryCoffee,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                  ),
+                ),
               );
             },
-            child: Container(
-              margin: const EdgeInsets.only(right: 20),
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFFFDE2D9),
-                border: Border.all(color: AppColors.primaryTerracotta, width: 1.5),
-              ),
-              alignment: Alignment.center,
-              child: const Text(
-                'NP',
-                style: TextStyle(
-                  color: AppColors.primaryCoffee,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
-            ),
           ),
         ],
       ),

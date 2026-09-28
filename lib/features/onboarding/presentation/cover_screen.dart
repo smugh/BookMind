@@ -1,314 +1,218 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/main_navigation_shell.dart';
+import '../../../core/localization/app_strings.dart';
+import '../../../core/services/app_settings_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../shared/widgets/bookmind_logo.dart';
 
-class CoverScreen extends StatefulWidget {
+class CoverScreen extends ConsumerStatefulWidget {
   const CoverScreen({super.key});
 
   @override
-  State<CoverScreen> createState() => _CoverScreenState();
+  ConsumerState<CoverScreen> createState() => _CoverScreenState();
 }
 
-class _CoverScreenState extends State<CoverScreen> {
-  final PageController _pageController = PageController();
-  int _currentPage = 0;
-
-  final List<({String badge, String title, String subtitle})> _slides = const [
-    (
-      badge: 'Bebas Iklan · Tanpa Langganan · 100% Offline 🛡️',
-      title: 'Fokus Upgrade Diri\nTanpa Distraksi.',
-      subtitle:
-          'Fokuskan upgrade diri tanpa ribet iklan atau subscribe. Simpan kutipan berharga, catat refleksi personal, dan bangun perpustakaan pengetahuan privat.',
-    ),
-    (
-      badge: 'Highlight & Sticky Note 📌',
-      title: 'Tangkap Setiap\nRefleksi & Ide.',
-      subtitle:
-          'Tandai kalimat penting, tempelkan sticky note interaktif di halaman buku yang dapat di-minimize, dan kembangkan pemikiranmu.',
-    ),
-    (
-      badge: 'Statistik Berbasis Tanggal 📊',
-      title: 'Pantau Habit &\nKonsistensi Harian.',
-      subtitle:
-          'Pantau progres membaca harian dengan kalender tanggal, streak membaca, jam baca paling aktif, dan grafik pertumbuhan bulanan.',
-    ),
-  ];
-
+class _CoverScreenState extends ConsumerState<CoverScreen> {
   void _navigateToHome() {
-    Navigator.of(context).push(
+    Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) =>
             const MainNavigationShell(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(opacity: animation, child: child);
         },
-        transitionDuration: const Duration(milliseconds: 300),
+        transitionDuration: const Duration(milliseconds: 350),
       ),
     );
   }
 
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
+  ImageProvider _resolveCoverImage(String? customPath) {
+    if (customPath != null && customPath.isNotEmpty) {
+      if (!kIsWeb && File(customPath).existsSync()) {
+        return FileImage(File(customPath));
+      }
+    }
+    return const AssetImage('assets/images/onboarding_reader.png');
   }
 
   @override
   Widget build(BuildContext context) {
+    final settings = ref.watch(appSettingsProvider);
+    final lang = settings.language;
+    final coverImage = _resolveCoverImage(settings.coverImagePath);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF7F2),
-      body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 720),
-            child: Column(
-              children: [
-            // Top Bar with Brand Logo & Skip
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      backgroundColor: const Color(0xFF1E1713),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // 1. Full Page Background Image
+          Image(
+            image: coverImage,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                color: const Color(0xFF2B211B),
+                child: const Center(
+                  child: Icon(
+                    Icons.auto_stories,
+                    size: 96,
+                    color: Color(0xFFC7B198),
+                  ),
+                ),
+              );
+            },
+          ),
+
+          // 2. High-contrast Dark/Warm Gradient Scrim
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.black.withOpacity(0.40),
+                  Colors.black.withOpacity(0.25),
+                  Colors.black.withOpacity(0.75),
+                  const Color(0xFF160E0A).withOpacity(0.95),
+                ],
+                stops: const [0.0, 0.35, 0.70, 1.0],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
+          ),
+
+          // 3. Screen Content (Safe area)
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const BookMindLogo(iconSize: 24, style: BookMindLogoStyle.horizontal),
-                  TextButton(
-                    onPressed: _navigateToHome,
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppColors.n500,
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      visualDensity: VisualDensity.compact,
+                  // Top Brand Bar (No skip button)
+                  const Row(
+                    children: [
+                      BookMindLogo(
+                        iconSize: 26,
+                        style: BookMindLogoStyle.horizontal,
+                      ),
+                    ],
+                  ),
+
+                  const Spacer(flex: 2),
+
+                  // Tagline Pill Badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE07A5F).withOpacity(0.25),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: const Color(0xFFE07A5F).withOpacity(0.55),
+                      ),
                     ),
                     child: Text(
-                      'Lewati',
-                      style: AppTypography.titleMedium.copyWith(
-                        color: AppColors.n500,
-                        fontSize: 13,
+                      AppStrings.tr('cover_badge', lang),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFFFFD4C7),
+                        letterSpacing: 0.2,
                       ),
                     ),
                   ),
-                ],
-              ),
-            ),
+                  const SizedBox(height: 16),
 
-            // PageView Content
-            Expanded(
-              child: PageView.builder(
-                controller: _pageController,
-                itemCount: _slides.length,
-                onPageChanged: (index) {
-                  setState(() => _currentPage = index);
-                },
-                itemBuilder: (context, index) {
-                  final slide = _slides[index];
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 10),
-
-                        // Greeting / Tagline Badge
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFDEEE9),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: const Color(0xFFF8D8CE)),
-                          ),
-                          child: Text(
-                            slide.badge,
-                            style: const TextStyle(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.primaryTerracotta,
-                            ),
-                          ),
+                  // Headline Serif
+                  Text(
+                    AppStrings.tr('cover_headline', lang),
+                    style: AppTypography.displayLarge.copyWith(
+                      fontSize: 32,
+                      height: 1.22,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withOpacity(0.6),
+                          blurRadius: 12,
+                          offset: const Offset(0, 3),
                         ),
-                        const SizedBox(height: 12),
-
-                        // Headline Serif
-                        Text(
-                          slide.title,
-                          style: AppTypography.displayLarge.copyWith(
-                            fontSize: 28,
-                            height: 1.2,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.primaryCoffee,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-
-                        // Subtitle
-                        Text(
-                          slide.subtitle,
-                          style: AppTypography.bodyLarge.copyWith(
-                            fontSize: 13.5,
-                            height: 1.45,
-                            color: AppColors.n700,
-                          ),
-                        ),
-                        const Spacer(),
-
-                        // Thematic Illustration Frame
-                        Center(
-                          child: Container(
-                            constraints: const BoxConstraints(
-                              maxWidth: 320,
-                              maxHeight: 270,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(24),
-                              border: Border.all(
-                                color: const Color(0xFFF4EAD9),
-                                width: 2,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.primaryCoffee.withOpacity(0.06),
-                                  blurRadius: 24,
-                                  offset: const Offset(0, 10),
-                                ),
-                              ],
-                            ),
-                            padding: const EdgeInsets.all(12),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(16),
-                              child: Image.asset(
-                                'assets/images/onboarding_reader.png',
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Container(
-                                    height: 210,
-                                    color: AppColors.primaryCream,
-                                    child: const Center(
-                                      child: Icon(
-                                        Icons.auto_stories,
-                                        size: 72,
-                                        color: AppColors.primaryCoffee,
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                          ),
-                        ),
-                        const Spacer(),
                       ],
                     ),
-                  );
-                },
-              ),
-            ),
+                  ),
+                  const SizedBox(height: 12),
 
-            // Dots Indicator
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  _slides.length,
-                  (index) {
-                    final bool isActive = _currentPage == index;
-                    return AnimatedContainer(
-                      duration: const Duration(milliseconds: 250),
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      width: isActive ? 22 : 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: isActive
-                            ? AppColors.primaryTerracotta
-                            : const Color(0xFFE2D6C7),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
-
-            // Tagline Pill Strip (Requirement 4)
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFF8EE),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFFF1DECB)),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.workspace_premium_rounded, size: 15, color: Color(0xFFD97706)),
-                  SizedBox(width: 6),
-                  Flexible(
-                    child: Text(
-                      'Fokus upgrade diri tanpa ribet iklan & subscribe',
-                      style: TextStyle(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.primaryCoffee,
-                      ),
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                  // Subtitle
+                  Text(
+                    AppStrings.tr('cover_subtitle', lang),
+                    style: AppTypography.bodyLarge.copyWith(
+                      fontSize: 14,
+                      height: 1.5,
+                      color: const Color(0xFFE8DFD8),
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withOpacity(0.7),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                   ),
+
+                  const Spacer(flex: 1),
+
+                  // Sole Interactive Element: Slide to Start Button
+                  Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 440),
+                      child: _SlideToStartButton(
+                        guideText: AppStrings.tr('slide_to_enter', lang),
+                        onSlideComplete: _navigateToHome,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Creator Information in Footer
+                  Center(
+                    child: Text(
+                      AppStrings.tr('created_by', lang),
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white.withOpacity(0.50),
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
                 ],
               ),
             ),
-
-            // Bottom Sliding Arrow Button (Requirement 3)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 6, 24, 16),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 440),
-                child: Column(
-                  children: [
-                    _SlideToStartButton(
-                      onSlideComplete: _navigateToHome,
-                    ),
-                    const SizedBox(height: 6),
-
-                    // Secondary Text Action
-                    TextButton(
-                      onPressed: _navigateToHome,
-                      style: TextButton.styleFrom(
-                        foregroundColor: AppColors.primaryCoffee,
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        visualDensity: VisualDensity.compact,
-                      ),
-                      child: Text(
-                        'Atau ketuk di sini untuk masuk langsung',
-                        style: AppTypography.labelSmall.copyWith(
-                          color: AppColors.n500,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
-    ),
-  ),
-);
+    );
   }
 }
 
 /// Interactive Sliding Button with Arrow knob
+/// The ONLY active interactive element on CoverScreen
 class _SlideToStartButton extends StatefulWidget {
+  final String guideText;
   final VoidCallback onSlideComplete;
 
-  const _SlideToStartButton({required this.onSlideComplete});
+  const _SlideToStartButton({
+    required this.guideText,
+    required this.onSlideComplete,
+  });
 
   @override
   State<_SlideToStartButton> createState() => _SlideToStartButtonState();
@@ -348,7 +252,6 @@ class _SlideToStartButtonState extends State<_SlideToStartButton>
     );
     _animController.forward(from: 0.0).then((_) {
       widget.onSlideComplete();
-      // Reset back for subsequent interactions
       Future.delayed(const Duration(milliseconds: 600), () {
         if (mounted) {
           setState(() {
@@ -368,8 +271,8 @@ class _SlideToStartButtonState extends State<_SlideToStartButton>
 
   @override
   Widget build(BuildContext context) {
-    const double buttonHeight = 56.0;
-    const double knobSize = 46.0;
+    const double buttonHeight = 58.0;
+    const double knobSize = 48.0;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -379,14 +282,17 @@ class _SlideToStartButtonState extends State<_SlideToStartButton>
           width: double.infinity,
           height: buttonHeight,
           decoration: BoxDecoration(
-            color: const Color(0xFFF2ECE2),
+            color: const Color(0xFF2C221C).withOpacity(0.85),
             borderRadius: BorderRadius.circular(buttonHeight / 2),
-            border: Border.all(color: const Color(0xFFE2D6C5), width: 1.5),
+            border: Border.all(
+              color: const Color(0xFFE07A5F).withOpacity(0.40),
+              width: 1.5,
+            ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primaryCoffee.withOpacity(0.04),
-                blurRadius: 8,
-                offset: const Offset(0, 3),
+                color: Colors.black.withOpacity(0.35),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
               ),
             ],
           ),
@@ -401,7 +307,7 @@ class _SlideToStartButtonState extends State<_SlideToStartButton>
                 width: _dragPosition + (knobSize / 2) + 4,
                 child: Container(
                   decoration: BoxDecoration(
-                    color: AppColors.primaryTerracotta.withOpacity(0.18),
+                    color: AppColors.primaryTerracotta.withOpacity(0.35),
                     borderRadius: BorderRadius.circular(buttonHeight / 2),
                   ),
                 ),
@@ -414,37 +320,38 @@ class _SlideToStartButtonState extends State<_SlideToStartButton>
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Geser panah untuk masuk',
+                        widget.guideText,
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.primaryCoffee.withOpacity(0.75),
-                          letterSpacing: 0.3,
+                          color: Colors.white.withOpacity(0.85),
+                          letterSpacing: 0.4,
                         ),
                       ),
                       const SizedBox(width: 8),
                       Icon(
                         Icons.double_arrow_rounded,
                         size: 16,
-                        color: AppColors.primaryTerracotta.withOpacity(0.85),
+                        color: AppColors.primaryTerracotta.withOpacity(0.95),
                       ),
                     ],
                   ),
                 ),
               ),
 
-              // Draggable / Tap Arrow Knob
+              // Draggable Arrow Knob
               Positioned(
                 left: 4.0 + _dragPosition,
                 child: GestureDetector(
                   onTap: () => _completeSlide(maxDrag),
                   onHorizontalDragUpdate: (details) {
                     setState(() {
-                      _dragPosition = (_dragPosition + details.delta.dx).clamp(0.0, maxDrag);
+                      _dragPosition =
+                          (_dragPosition + details.delta.dx).clamp(0.0, maxDrag);
                     });
                   },
                   onHorizontalDragEnd: (details) {
-                    if (_dragPosition >= maxDrag * 0.65) {
+                    if (_dragPosition >= maxDrag * 0.60) {
                       _completeSlide(maxDrag);
                     } else {
                       _springBack();
@@ -454,13 +361,17 @@ class _SlideToStartButtonState extends State<_SlideToStartButton>
                     width: knobSize,
                     height: knobSize,
                     decoration: BoxDecoration(
-                      color: AppColors.primaryCoffee,
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFE07A5F), Color(0xFFC85A3D)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primaryCoffee.withOpacity(0.35),
-                          blurRadius: 8,
-                          offset: const Offset(2, 2),
+                          color: AppColors.primaryTerracotta.withOpacity(0.50),
+                          blurRadius: 10,
+                          offset: const Offset(1, 2),
                         ),
                       ],
                     ),

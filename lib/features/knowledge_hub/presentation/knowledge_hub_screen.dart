@@ -6,6 +6,7 @@ import '../../../core/utils/date_formatter.dart';
 import '../../../data/database/app_database.dart';
 import '../../../data/database/database_provider.dart';
 import '../../notes/presentation/add_reflection_sheet.dart';
+import '../../profile/presentation/widgets/export_notes_sheet.dart';
 import '../../reader/presentation/reader_screen.dart';
 
 final knowledgeSearchQueryProvider = StateProvider<String>((ref) => '');
@@ -563,50 +564,6 @@ class KnowledgeHubScreen extends ConsumerWidget {
   }
 
   void _showExportSheet(BuildContext context, WidgetRef ref) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.n100,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text('Ekspor Catatan & Highlight', style: AppTypography.headlineMedium),
-            const SizedBox(height: 16),
-            ListTile(
-              leading: const Icon(Icons.description_outlined, color: AppColors.primaryCoffee),
-              title: const Text('Ekspor ke Markdown (.md)'),
-              subtitle: const Text('Cocok untuk Obsidian, Notion, Logseq'),
-              onTap: () {
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Catatan berhasil disiapkan dalam format Markdown.'),
-                    backgroundColor: AppColors.primaryCoffee,
-                  ),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.text_snippet_outlined, color: AppColors.primaryCoffee),
-              title: const Text('Ekspor ke Teks Biasa (.txt)'),
-              onTap: () {
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Catatan berhasil disiapkan dalam format TXT.'),
-                    backgroundColor: AppColors.primaryCoffee,
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
+    ExportNotesSheet.show(context);
   }
 }

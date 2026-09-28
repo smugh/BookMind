@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../core/services/app_settings_service.dart';
 import '../core/theme/app_colors.dart';
 import '../core/utils/responsive.dart';
 import '../features/home/presentation/home_screen.dart';
@@ -8,14 +10,14 @@ import '../features/library/presentation/library_screen.dart';
 import '../features/profile/presentation/reading_stats_screen.dart';
 import '../shared/widgets/bookmind_logo.dart';
 
-class MainNavigationShell extends StatefulWidget {
+class MainNavigationShell extends ConsumerStatefulWidget {
   const MainNavigationShell({super.key});
 
   @override
-  State<MainNavigationShell> createState() => _MainNavigationShellState();
+  ConsumerState<MainNavigationShell> createState() => _MainNavigationShellState();
 }
 
-class _MainNavigationShellState extends State<MainNavigationShell> {
+class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
   int _currentIndex = 0;
 
   void _goToLibrary() {
@@ -29,6 +31,8 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
   @override
   Widget build(BuildContext context) {
     final isTablet = Responsive.isTabletOrDesktop(context);
+    final settings = ref.watch(appSettingsProvider);
+    final isEn = settings.language == 'en';
 
     final pages = [
       HomeScreen(
@@ -41,31 +45,31 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
       const GlobalSearchScreen(),
     ];
 
-    const destinations = [
+    final destinations = [
       (
         icon: Icons.home_outlined,
         selectedIcon: Icons.home,
-        label: 'Beranda',
+        label: isEn ? 'Home' : 'Beranda',
       ),
       (
         icon: Icons.auto_stories_outlined,
         selectedIcon: Icons.auto_stories,
-        label: 'Perpustakaan',
+        label: isEn ? 'Library' : 'Perpustakaan',
       ),
       (
         icon: Icons.sticky_note_2_outlined,
         selectedIcon: Icons.sticky_note_2,
-        label: 'Catatan',
+        label: isEn ? 'Notes' : 'Catatan',
       ),
       (
         icon: Icons.bar_chart_outlined,
         selectedIcon: Icons.bar_chart,
-        label: 'Statistik',
+        label: isEn ? 'Stats' : 'Statistik',
       ),
       (
         icon: Icons.search_outlined,
         selectedIcon: Icons.search,
-        label: 'Pencarian',
+        label: isEn ? 'Search' : 'Pencarian',
       ),
     ];
 

@@ -11,10 +11,10 @@ Folder ini berisi berkas instalasi aplikasi **BookMind** yang siap rilis dan diu
 | **Nama Berkas** | [`BookMind-v1.0.0.apk`](./BookMind-v1.0.0.apk) |
 | **Versi Aplikasi** | `v1.0.0` (Build `1`) |
 | **Tanggal Build** | 28 September 2026 |
-| **Ukuran Berkas** | ~32.7 MB |
+| **Ukuran Berkas** | ~33.7 MB |
 | **Target OS** | Android 5.0 (API level 21) ke atas |
 | **Arsitektur** | Universal (`arm64-v8a`, `armeabi-v7a`, `x86_64`) |
-| **SHA-256 Checksum** | `a571d24089a9f7d83c61385a94e835a61ea1cbd5dd734237f0d81ab68b0b41a2` |
+| **SHA-256 Checksum** | `188acc1d3441f7195d201a0b1c7ccd4d8e99396a2f86b0174e5942a15ec5cf85` |
 
 ---
 
