@@ -358,7 +358,7 @@ class ProfileScreen extends ConsumerWidget {
             child: Column(
               children: [
                 Text(
-                  'Book&Mind v1.0.2',
+                  'Book&Mind v1.0.3',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -571,7 +571,7 @@ class ProfileScreen extends ConsumerWidget {
             const BookMindLogo(iconSize: 52),
             const SizedBox(height: 16),
             const Text(
-              'Book&Mind v1.0.2',
+              'Book&Mind v1.0.3',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
             ),
             const SizedBox(height: 4),
