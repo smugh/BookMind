@@ -13,6 +13,8 @@ Folder ini berisi berkas instalasi aplikasi **Book&Mind** yang siap rilis dan di
 | **Tanggal Build** | 29 September 2026 |
 | **Target OS** | Android 5.0 (API level 21) ke atas |
 | **Arsitektur** | Universal (`arm64-v8a`, `armeabi-v7a`, `x86_64`) |
+| **Ukuran Berkas** | ~36.1 MB |
+| **SHA-256 Checksum** | `000859f433ba0eebb9ba33c2f85e107fbd5e3732d6bb4fffe012db05506d2495` |
 
 ---
 
