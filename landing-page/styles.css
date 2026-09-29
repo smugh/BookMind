@@ -390,6 +390,110 @@ h1, h2, h3, h4 {
 }
 
 /* ===================================================================
+   SECTION: STATISTIK MEMBACA & BENEFIT USER
+   =================================================================== */
+.stats-section {
+  padding: 75px 0 65px;
+  background: var(--n100);
+}
+
+.stats-card-main {
+  display: grid;
+  grid-template-columns: 0.85fr 1.15fr;
+  gap: 48px;
+  align-items: center;
+  background: var(--white);
+  border: 1px solid rgba(107, 78, 61, 0.12);
+  border-radius: var(--radius-lg);
+  padding: 42px 48px;
+  box-shadow: var(--shadow-md);
+}
+
+.stats-img-col {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.stats-content-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.stats-badge-lead {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--terracotta-dark);
+  background: #FCF4EE;
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-bottom: 10px;
+}
+
+.stats-headline {
+  font-family: var(--font-serif);
+  font-size: 1.85rem;
+  color: var(--coffee-dark);
+  line-height: 1.25;
+  margin-bottom: 10px;
+}
+
+.stats-lead-desc {
+  font-size: 0.92rem;
+  color: var(--n700);
+  line-height: 1.55;
+  margin-bottom: 24px;
+}
+
+.stats-benefits-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.stats-benefit-item {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  background: var(--cream-soft);
+  border: 1px solid rgba(107, 78, 61, 0.08);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stats-benefit-item:hover {
+  transform: translateY(-2px);
+  border-color: var(--terracotta);
+  box-shadow: var(--shadow-sm);
+}
+
+.stats-benefit-icon {
+  font-size: 1.4rem;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.stats-benefit-info h4 {
+  font-family: var(--font-serif);
+  font-size: 1.02rem;
+  color: var(--coffee-dark);
+  margin-bottom: 4px;
+  line-height: 1.25;
+}
+
+.stats-benefit-info p {
+  font-size: 0.82rem;
+  color: var(--n700);
+  line-height: 1.45;
+}
+
+/* ===================================================================
    SECTION: ALASAN DIBUATNYA & VALUE YANG DITAWARKAN
    =================================================================== */
 .story-section {
@@ -706,6 +810,12 @@ h1, h2, h3, h4 {
   .hero-text { align-items: center; }
   .hero-pills { justify-content: center; }
   .features-grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .stats-card-main { grid-template-columns: 1fr; padding: 32px 24px; text-align: center; gap: 32px; }
+  .stats-content-col { align-items: center; text-align: left; }
+  .stats-badge-lead { align-self: center; }
+  .stats-headline { text-align: center; }
+  .stats-lead-desc { text-align: center; }
+  .stats-benefits-grid { grid-template-columns: 1fr; }
   .story-card-split { grid-template-columns: 1fr; padding: 32px 24px; text-align: center; }
   .story-info-col { align-items: center; text-align: left; }
   .values-layout { grid-template-columns: 1fr; }
@@ -722,6 +832,8 @@ h1, h2, h3, h4 {
 @media (max-width: 600px) {
   .hero-title { font-size: 2.2rem; }
   .features-grid-4 { grid-template-columns: 1fr; }
+  .stats-card-main { padding: 24px 16px; }
+  .stats-benefit-item { flex-direction: column; gap: 8px; }
   .story-box { padding: 14px 16px; }
   .values-wrapper { padding: 24px 16px; }
   .value-item { flex-direction: column; gap: 8px; }

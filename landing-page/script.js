@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     id: {
       // Navbar
       navFeatures: 'Fitur',
+      navStats: 'Statistik',
       navStory: 'Alasan &amp; Nilai',
       navDownloadApk: 'Unduh APK',
 
@@ -35,6 +36,23 @@ document.addEventListener('DOMContentLoaded', () => {
       feat3Desc: 'SQLite FTS instan',
       feat4Title: 'Deep Link',
       feat4Desc: 'Lompat ke halaman asal',
+
+      // Reading Stats Section
+      statsTag: 'STATISTIK MEMBACA &bull; BY SMUGH-TECH',
+      statsTitle: 'Pantau Kebiasaan Membaca, Raih Konsistensi Nyata',
+      statsSub: 'Dashboard personal visual yang merekam perjalanan literasi Anda secara presisi, terukur, dan 100% offline tanpa perantara cloud.',
+      statsImgCaption: '📊 Statistik Baca: Waktu, streak, &amp; genre favorit',
+      statsLead: 'MANFAAT UNTUK PEMBACA',
+      statsHeadline: 'Mengapa Statistik Membaca Penting?',
+      statsLeadDesc: 'Banyak orang ingin rutin membaca namun kehilangan jejak kemajuannya. BookMind mengubah aktivitas membaca harian menjadi data berharga yang memotivasi pertumbuhan diri Anda.',
+      statBen1Title: 'Disiplin &amp; Reading Streak',
+      statBen1Desc: 'Pelacak konsistensi harian dan rekor streak menjaga antusiasme membaca agar tidak mudah surut di tengah kesibukan.',
+      statBen2Title: 'Analisis Waktu &amp; Jam Fokus',
+      statBen2Desc: 'Ketahui akumulasi durasi baca harian hingga tahunan, serta temukan jam emas saat fokus membaca Anda berada di titik terbaik.',
+      statBen3Title: 'Distribusi Genre Dinamis',
+      statBen3Desc: 'Petakan topik buku favorit Anda secara proporsional untuk mengevaluasi diversitas wawasan dan eksplorasi literatur baru.',
+      statBen4Title: '100% Privat Tanpa Tekanan',
+      statBen4Desc: 'Semua data tersimpan aman di SQLite perangkat Anda. Tanpa algoritma kompetitif, pamer sosial, atau pantauan pihak luar.',
 
       // Story Section (Alasan Dibuatnya)
       storyTag: 'LATAR BELAKANG &bull; BY SMUGH-TECH',
@@ -76,6 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
     en: {
       // Navbar
       navFeatures: 'Features',
+      navStats: 'Reading Stats',
       navStory: 'Why &amp; Values',
       navDownloadApk: 'Download APK',
 
@@ -97,6 +116,23 @@ document.addEventListener('DOMContentLoaded', () => {
       feat3Desc: 'Instant SQLite FTS',
       feat4Title: 'Deep Link',
       feat4Desc: 'Jump to original page',
+
+      // Reading Stats Section
+      statsTag: 'READING STATS &bull; BY SMUGH-TECH',
+      statsTitle: 'Track Your Reading Habits, Build True Consistency',
+      statsSub: 'A personal, visual dashboard capturing your literacy journey with precision, clarity, and 100% offline local privacy.',
+      statsImgCaption: '📊 Reading Stats: Time, streaks, &amp; top genres',
+      statsLead: 'BENEFITS FOR READERS',
+      statsHeadline: 'Why Do Reading Stats Matter?',
+      statsLeadDesc: 'Many intend to read consistently but lose track of their momentum. BookMind transforms daily reading into tangible data that inspires personal growth.',
+      statBen1Title: 'Daily Discipline &amp; Reading Streaks',
+      statBen1Desc: 'Visual streak tracker and consistency calendar help you maintain a sustainable reading rhythm amidst daily routines.',
+      statBen2Title: 'Time Analytics &amp; Peak Focus Hours',
+      statBen2Desc: 'Monitor total reading hours across days, weeks, and years, while uncovering your most productive reading hours.',
+      statBen3Title: 'Dynamic Genre Distribution',
+      statBen3Desc: 'Gain clear insight into your favorite book genres and reading diversity to balance your knowledge acquisition.',
+      statBen4Title: '100% Private, Zero Social Pressure',
+      statBen4Desc: 'All stats stay strictly inside your device SQLite. No public rankings, external trackers, or vanity competition.',
 
       // Story Section (Why it was built)
       storyTag: 'BACKGROUND &bull; BY SMUGH-TECH',
@@ -142,12 +178,14 @@ document.addEventListener('DOMContentLoaded', () => {
     id: {
       heroImg: 'assets/reader_highlight.png',
       storyImg1: 'assets/reader_highlight.png',
-      storyImg2: 'assets/knowledge_hub.png'
+      storyImg2: 'assets/knowledge_hub.png',
+      statsImg: 'assets/reading_stats.png'
     },
     en: {
       heroImg: 'assets/en/reader_highlight.png',
       storyImg1: 'assets/en/reader_highlight.png',
-      storyImg2: 'assets/en/knowledge_hub.png'
+      storyImg2: 'assets/en/knowledge_hub.png',
+      statsImg: 'assets/en/reading_stats.png'
     }
   };
 
