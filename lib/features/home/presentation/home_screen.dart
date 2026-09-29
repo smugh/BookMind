@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/app_settings_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/utils/date_formatter.dart';
 import '../../../core/utils/responsive.dart';
 import '../../../data/database/app_database.dart';
 import '../../../data/database/database_provider.dart';
@@ -89,17 +90,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   !kIsWeb &&
                   File(settings.profileImagePath!).existsSync();
 
-              return GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const ProfileScreen()),
-                  );
-                },
-                child: Container(
-                  margin: const EdgeInsets.only(right: 20),
-                  width: 40,
-                  height: 40,
+              return Padding(
+                padding: const EdgeInsets.only(right: 16),
+                child: Center(
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(20),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                      );
+                    },
+                    child: Container(
+                      width: 40,
+                      height: 40,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: const Color(0xFFFDE2D9),
@@ -114,21 +118,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             File(settings.profileImagePath!),
                             fit: BoxFit.cover,
                           )
-                        : const Center(
+                        : Center(
                             child: Text(
-                              'NP',
-                              style: TextStyle(
+                              settings.userName
+                                  .trim()
+                                  .split(RegExp(r'\s+'))
+                                  .where((s) => s.isNotEmpty)
+                                  .map((s) => s[0].toUpperCase())
+                                  .take(2)
+                                  .join(),
+                              style: const TextStyle(
                                 color: AppColors.primaryCoffee,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 14,
+                                fontSize: 13,
                               ),
                             ),
                           ),
                   ),
                 ),
-              );
-            },
-          ),
+              ),
+            ),
+          );
+        },
+      ),
         ],
       ),
       body: booksAsync.when(
@@ -182,7 +194,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               children: [
                                 Text('Statistik Membaca', style: AppTypography.headlineMedium),
                                 const SizedBox(height: 12),
-                                _buildQuickStatsCard(context),
+                                _buildQuickStatsCard(context, books),
                               ],
                             ),
                           ),
@@ -195,7 +207,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       const SizedBox(height: 16),
 
                       // Quick Analytics / Statistik Banner
-                      _buildQuickStatsCard(context),
+                      _buildQuickStatsCard(context, books),
                       const SizedBox(height: 24),
                     ],
 
@@ -397,7 +409,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildQuickStatsCard(BuildContext context) {
+  Widget _buildQuickStatsCard(BuildContext context, [List<BookEntry>? allBooks]) {
+    final readBooks = (allBooks ?? []).where((b) => b.lastReadAt != null).toList();
+    final totalPages = readBooks.fold<int>(0, (sum, b) => sum + (b.lastReadPage > 0 ? b.lastReadPage : 0));
+    final finishedBooks = (allBooks ?? []).where((b) => b.totalPages > 0 && b.lastReadPage >= b.totalPages).length;
+
+    final String statsSummary = readBooks.isEmpty
+        ? '0 Buku · 0 Halaman · 0 Jam Membaca'
+        : '$finishedBooks Buku Selesai · $totalPages Halaman Dibaca';
+
+    final String lastSessionText = readBooks.isEmpty
+        ? 'Belum ada aktivitas membaca'
+        : 'Sesi Terakhir: ${DateFormatter.timeAgo(readBooks.first.lastReadAt!)}';
+
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {
@@ -462,9 +486,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           color: AppColors.primaryTerracotta.withOpacity(0.12),
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: const Text(
-                          '2026',
-                          style: TextStyle(
+                        child: Text(
+                          '${DateTime.now().year}',
+                          style: const TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
                             color: AppColors.primaryTerracotta,
@@ -475,7 +499,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ),
                   const SizedBox(height: 3),
                   Text(
-                    '12 Buku · 2.340 Halaman · 48 Jam Membaca',
+                    statsSummary,
                     style: AppTypography.bodyMedium.copyWith(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -488,7 +512,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       const Icon(Icons.access_time_rounded, size: 12, color: AppColors.primaryTerracotta),
                       const SizedBox(width: 4),
                       Text(
-                        'Sesi Terakhir: Hari ini, 20:45 WIB',
+                        lastSessionText,
                         style: AppTypography.labelSmall.copyWith(
                           fontSize: 11,
                           color: AppColors.n500,

@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
       heroTagline: 'READ &bull; REFLECT &bull; GROW',
       heroTitle: 'Baca Lebih Dalam.<br><span>Ingat Lebih Lama.</span>',
       heroDesc: 'Personal reading knowledge system offline untuk Android.',
+      heroBtnDownload: 'Unduh APK (v1.0.1)',
       heroBtnScreenshots: 'Screenshots',
       heroBtnGuideline: 'User Guideline',
       heroPillOffline: '100% Offline',
@@ -79,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
       footerNote: 'Offline-First Android App &bull; Drift SQLite',
 
       // Toast Notice
-      toastApkSoon: '📦 Link unduh APK akan segera tersedia!',
+      toastApkDownloading: '📥 Mengunduh BookMind v1.0.1 APK...',
 
       // Guide navigation buttons
       guidePrevText: '&larr; Sebelumnya',
@@ -97,6 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
       heroTagline: 'READ &bull; REFLECT &bull; GROW',
       heroTitle: 'Read Deeper.<br><span>Remember Longer.</span>',
       heroDesc: 'Offline personal reading knowledge system for Android.',
+      heroBtnDownload: 'Download APK (v1.0.1)',
       heroBtnScreenshots: 'Screenshots',
       heroBtnGuideline: 'User Guideline',
       heroPillOffline: '100% Offline',
@@ -154,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
       footerNote: 'Offline-First Android App &bull; Drift SQLite',
 
       // Toast Notice
-      toastApkSoon: '📦 The APK download link will be available soon!',
+      toastApkDownloading: '📥 Downloading BookMind v1.0.1 APK...',
 
       // Guide navigation buttons
       guidePrevText: '&larr; Previous',
@@ -436,12 +438,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 3500);
   }
 
-  if (downloadApkBtn) {
-    downloadApkBtn.addEventListener('click', () => {
-      const msg = i18n[currentLang]?.toastApkSoon || '📦 File APK akan segera tersedia untuk diunduh!';
+  const downloadTriggers = document.querySelectorAll('#downloadApkBtn, .hero-btn-apk');
+  downloadTriggers.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const msg = i18n[currentLang]?.toastApkDownloading || '📥 Mengunduh BookMind v1.0.1 APK...';
       showToast(msg);
     });
-  }
+  });
 
   // Smooth Scroll for anchor links
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {

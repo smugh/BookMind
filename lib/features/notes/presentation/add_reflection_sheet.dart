@@ -89,7 +89,12 @@ class _AddReflectionSheetState extends ConsumerState<AddReflectionSheet> {
 
   Future<void> _saveNote() async {
     if (_reflectionController.text.trim().isEmpty && widget.quoteText.trim().isEmpty) {
-      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Tuliskan refleksi atau catatan Anda terlebih dahulu'),
+          duration: Duration(seconds: 2),
+        ),
+      );
       return;
     }
 
@@ -100,6 +105,9 @@ class _AddReflectionSheetState extends ConsumerState<AddReflectionSheet> {
     try {
       final highlightId = widget.existingHighlightId ?? uuid.v4();
       final noteId = widget.existingNoteId ?? uuid.v4();
+      final quote = widget.quoteText.trim().isNotEmpty
+          ? widget.quoteText
+          : 'Catatan Halaman ${widget.pageNumber}';
 
       if (widget.existingHighlightId == null) {
         // Insert new highlight
@@ -108,7 +116,7 @@ class _AddReflectionSheetState extends ConsumerState<AddReflectionSheet> {
             id: drift.Value(highlightId),
             bookId: drift.Value(widget.bookId),
             pageNumber: drift.Value(widget.pageNumber),
-            selectedText: drift.Value(widget.quoteText),
+            selectedText: drift.Value(quote),
             color: drift.Value(_selectedColor),
             createdAt: drift.Value(DateTime.now()),
           ),
@@ -224,6 +232,7 @@ class _AddReflectionSheetState extends ConsumerState<AddReflectionSheet> {
             ),
             const SizedBox(height: 14),
 
+            if (widget.quoteText.trim().isNotEmpty) ...[
             // 1. COVER POPUP: Highlighted Text Banner
             Container(
               decoration: BoxDecoration(
@@ -361,6 +370,66 @@ class _AddReflectionSheetState extends ConsumerState<AddReflectionSheet> {
               ),
             ),
             const SizedBox(height: 16),
+            ] else ...[
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFEFE6D8), width: 1.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primaryCoffee.withOpacity(0.04),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFDEEE9),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.edit_note,
+                        size: 24,
+                        color: AppColors.primaryTerracotta,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Catatan Halaman ${widget.pageNumber}',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primaryCoffee,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            widget.bookTitle ?? 'Tuliskan catatan atau pemikiran Anda di bawah',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.n500,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
 
             // 2. DI BAWAH COVER: Catatan Refleksi (Format PRD)
             Row(

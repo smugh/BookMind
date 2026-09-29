@@ -40,16 +40,9 @@ class ProfileScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         children: [
-          // User Profile Card (Tappable to change appearance/photo)
+          // User Profile Card (Tappable to edit profile name and email)
           InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const AppearanceSettingsScreen(),
-                ),
-              );
-            },
+            onTap: () => _showEditProfileModal(context, ref, settings, lang),
             borderRadius: BorderRadius.circular(16),
             child: Container(
               padding: const EdgeInsets.all(16),
@@ -84,10 +77,10 @@ class ProfileScreen extends ConsumerWidget {
                               File(settings.profileImagePath!),
                               fit: BoxFit.cover,
                             )
-                          : const Center(
+                          : Center(
                               child: Text(
-                                'NP',
-                                style: TextStyle(
+                                _getInitials(settings.userName),
+                                style: const TextStyle(
                                   color: AppColors.primaryCoffee,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 19,
@@ -101,13 +94,33 @@ class ProfileScreen extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Nadia Putri',
-                          style: AppTypography.titleLarge.copyWith(fontSize: 17),
+                        Row(
+                          children: [
+                            Text(
+                              settings.userName,
+                              style: AppTypography.titleLarge.copyWith(fontSize: 17),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFDEEE9),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                lang == 'en' ? 'Edit' : 'Ubah',
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primaryTerracotta,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'nadia@email.com',
+                          settings.userEmail,
                           style: AppTypography.bodyMedium.copyWith(
                             color: AppColors.n500,
                             fontSize: 13,
@@ -604,5 +617,272 @@ class ProfileScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  void _showEditProfileModal(
+    BuildContext context,
+    WidgetRef ref,
+    AppSettingsState settings,
+    String lang,
+  ) {
+    final nameController = TextEditingController(text: settings.userName);
+    final emailController = TextEditingController(text: settings.userEmail);
+    final formKey = GlobalKey<FormState>();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) {
+          final currentSettings = ref.watch(appSettingsProvider);
+          final hasCustomPhoto = currentSettings.profileImagePath != null &&
+              File(currentSettings.profileImagePath!).existsSync();
+
+          return Container(
+            decoration: const BoxDecoration(
+              color: Color(0xFFFAF7F2),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            padding: EdgeInsets.only(
+              top: 16,
+              left: 20,
+              right: 20,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+            ),
+            child: Form(
+              key: formKey,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: AppColors.n300,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          lang == 'en' ? 'Edit Profile' : 'Ubah Profil',
+                          style: AppTypography.titleLarge.copyWith(fontSize: 18),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close, size: 20),
+                          onPressed: () => Navigator.pop(ctx),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Avatar & Change Photo Button
+                    Center(
+                      child: Stack(
+                        children: [
+                          Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: const Color(0xFFFDE2D9),
+                              border: Border.all(
+                                color: AppColors.primaryTerracotta,
+                                width: 2.5,
+                              ),
+                            ),
+                            child: ClipOval(
+                              child: hasCustomPhoto
+                                  ? Image.file(
+                                      File(currentSettings.profileImagePath!),
+                                      fit: BoxFit.cover,
+                                    )
+                                  : Center(
+                                      child: Text(
+                                        _getInitials(nameController.text),
+                                        style: const TextStyle(
+                                          color: AppColors.primaryCoffee,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 26,
+                                        ),
+                                      ),
+                                    ),
+                            ),
+                          ),
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: GestureDetector(
+                              onTap: () async {
+                                final success = await ref
+                                    .read(appSettingsProvider.notifier)
+                                    .pickAndSetProfileImage();
+                                if (success) {
+                                  setModalState(() {});
+                                }
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: const BoxDecoration(
+                                  color: AppColors.primaryTerracotta,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.camera_alt,
+                                  size: 16,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Name Input
+                    Text(
+                      lang == 'en' ? 'Full Name' : 'Nama Lengkap',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.n700,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      controller: nameController,
+                      decoration: InputDecoration(
+                        hintText: lang == 'en' ? 'Enter your name' : 'Masukkan nama Anda',
+                        filled: true,
+                        fillColor: Colors.white,
+                        prefixIcon: const Icon(Icons.person_outline, size: 20),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: AppColors.n300),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: AppColors.n300),
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return lang == 'en' ? 'Name cannot be empty' : 'Nama tidak boleh kosong';
+                        }
+                        return null;
+                      },
+                      onChanged: (val) => setModalState(() {}),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Email Input
+                    Text(
+                      lang == 'en' ? 'Email Address' : 'Alamat Email',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.n700,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      controller: emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: InputDecoration(
+                        hintText: 'example@email.com',
+                        filled: true,
+                        fillColor: Colors.white,
+                        prefixIcon: const Icon(Icons.email_outlined, size: 20),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: AppColors.n300),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: AppColors.n300),
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return lang == 'en' ? 'Email cannot be empty' : 'Email tidak boleh kosong';
+                        }
+                        final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
+                        if (!emailRegex.hasMatch(value.trim())) {
+                          return lang == 'en' ? 'Enter a valid email address' : 'Format email tidak valid';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Save Button
+                    ElevatedButton(
+                      onPressed: () async {
+                        if (formKey.currentState?.validate() ?? false) {
+                          final newName = nameController.text.trim();
+                          final newEmail = emailController.text.trim();
+                          await ref.read(appSettingsProvider.notifier).updateProfileInfo(
+                                name: newName,
+                                email: newEmail,
+                              );
+                          if (ctx.mounted) {
+                            Navigator.pop(ctx);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  lang == 'en'
+                                      ? 'Profile updated successfully'
+                                      : 'Profil berhasil diperbarui',
+                                ),
+                                backgroundColor: AppColors.primaryCoffee,
+                                duration: const Duration(seconds: 2),
+                              ),
+                            );
+                          }
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryCoffee,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        lang == 'en' ? 'Save Changes' : 'Simpan Perubahan',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  String _getInitials(String name) {
+    final parts = name.trim().split(' ').where((s) => s.isNotEmpty).toList();
+    if (parts.isEmpty) return 'NN';
+    if (parts.length == 1) {
+      return parts[0].substring(0, parts[0].length >= 2 ? 2 : 1).toUpperCase();
+    }
+    return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
   }
 }

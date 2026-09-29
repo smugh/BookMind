@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/date_formatter.dart';
 import '../../../core/utils/responsive.dart';
+import '../../../data/database/database_provider.dart';
 
-class ReadingStatsScreen extends StatefulWidget {
+class ReadingStatsScreen extends ConsumerStatefulWidget {
   final bool isTab;
 
   const ReadingStatsScreen({
@@ -13,10 +15,10 @@ class ReadingStatsScreen extends StatefulWidget {
   });
 
   @override
-  State<ReadingStatsScreen> createState() => _ReadingStatsScreenState();
+  ConsumerState<ReadingStatsScreen> createState() => _ReadingStatsScreenState();
 }
 
-class _ReadingStatsScreenState extends State<ReadingStatsScreen> {
+class _ReadingStatsScreenState extends ConsumerState<ReadingStatsScreen> {
   String _selectedPeriod = 'Tahun';
   bool _hasDateTimePermission = false;
   DateTime _currentDeviceTime = DateTime.now();
@@ -26,39 +28,8 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen> {
 
   final List<String> _periods = ['Hari Ini', 'Minggu', 'Bulan', 'Tahun', 'Kustom'];
 
-  // 30 days dataset for September 2026 calendar matrix
-  final Map<int, ({int minutes, int pages, String book, List<String> sessions, bool hasSticky, bool hasNote})> _septemberDaysData = {
-    1: (minutes: 30, pages: 20, book: 'Atomic Habits', sessions: ['20:00 - 20:30 WIB'], hasSticky: false, hasNote: true),
-    2: (minutes: 40, pages: 28, book: 'The Daily Stoic', sessions: ['19:30 - 20:10 WIB'], hasSticky: true, hasNote: true),
-    3: (minutes: 0, pages: 0, book: '-', sessions: [], hasSticky: false, hasNote: false),
-    4: (minutes: 30, pages: 22, book: 'Atomic Habits', sessions: ['20:15 - 20:45 WIB'], hasSticky: false, hasNote: true),
-    5: (minutes: 55, pages: 40, book: 'Atomic Habits', sessions: ['15:00 - 15:55 WIB'], hasSticky: true, hasNote: true),
-    6: (minutes: 20, pages: 14, book: 'The Daily Stoic', sessions: ['08:00 - 08:20 WIB'], hasSticky: false, hasNote: false),
-    7: (minutes: 45, pages: 32, book: 'Deep Work', sessions: ['20:00 - 20:45 WIB'], hasSticky: false, hasNote: true),
-    8: (minutes: 35, pages: 24, book: 'Deep Work', sessions: ['19:00 - 19:35 WIB'], hasSticky: true, hasNote: true),
-    9: (minutes: 0, pages: 0, book: '-', sessions: [], hasSticky: false, hasNote: false),
-    10: (minutes: 25, pages: 16, book: 'Atomic Habits', sessions: ['21:00 - 21:25 WIB'], hasSticky: false, hasNote: false),
-    11: (minutes: 40, pages: 28, book: 'Atomic Habits', sessions: ['20:30 - 21:10 WIB'], hasSticky: true, hasNote: true),
-    12: (minutes: 30, pages: 20, book: 'The Daily Stoic', sessions: ['07:45 - 08:15 WIB'], hasSticky: false, hasNote: false),
-    13: (minutes: 50, pages: 36, book: 'Sapiens', sessions: ['14:00 - 14:50 WIB'], hasSticky: true, hasNote: true),
-    14: (minutes: 45, pages: 30, book: 'Sapiens', sessions: ['20:15 - 21:00 WIB'], hasSticky: false, hasNote: true),
-    15: (minutes: 0, pages: 0, book: '-', sessions: [], hasSticky: false, hasNote: false),
-    16: (minutes: 35, pages: 25, book: 'Atomic Habits', sessions: ['19:30 - 20:05 WIB'], hasSticky: true, hasNote: true),
-    17: (minutes: 20, pages: 15, book: 'The Daily Stoic', sessions: ['08:00 - 08:20 WIB'], hasSticky: false, hasNote: true),
-    18: (minutes: 40, pages: 26, book: 'Deep Work', sessions: ['21:00 - 21:40 WIB'], hasSticky: false, hasNote: false),
-    19: (minutes: 30, pages: 22, book: 'Atomic Habits', sessions: ['20:00 - 20:30 WIB'], hasSticky: false, hasNote: true),
-    20: (minutes: 60, pages: 44, book: 'Atomic Habits', sessions: ['15:00 - 16:00 WIB'], hasSticky: true, hasNote: true),
-    21: (minutes: 25, pages: 18, book: 'The Daily Stoic', sessions: ['07:30 - 07:55 WIB'], hasSticky: false, hasNote: true),
-    22: (minutes: 45, pages: 30, book: 'Atomic Habits', sessions: ['19:45 - 20:30 WIB'], hasSticky: true, hasNote: true),
-    23: (minutes: 30, pages: 20, book: 'Deep Work', sessions: ['20:00 - 20:30 WIB'], hasSticky: false, hasNote: false),
-    24: (minutes: 50, pages: 38, book: 'Deep Work', sessions: ['08:00 - 08:50 WIB'], hasSticky: true, hasNote: true),
-    25: (minutes: 35, pages: 24, book: 'Atomic Habits', sessions: ['21:00 - 21:35 WIB'], hasSticky: false, hasNote: true),
-    26: (minutes: 40, pages: 28, book: 'The Daily Stoic', sessions: ['14:00 - 14:45 WIB'], hasSticky: true, hasNote: true),
-    27: (minutes: 45, pages: 32, book: 'Atomic Habits (Bab 4)', sessions: ['14:00 - 14:45 WIB', '20:15 - 20:45 WIB'], hasSticky: true, hasNote: true),
-    28: (minutes: 20, pages: 15, book: 'Atomic Habits', sessions: ['07:30 - 07:50 WIB'], hasSticky: false, hasNote: false),
-    29: (minutes: 0, pages: 0, book: '-', sessions: [], hasSticky: false, hasNote: false),
-    30: (minutes: 0, pages: 0, book: '-', sessions: [], hasSticky: false, hasNote: false),
-  };
+  // Calendar dataset for active days (empty on clean install)
+  final Map<int, ({int minutes, int pages, String book, List<String> sessions, bool hasSticky, bool hasNote})> _septemberDaysData = {};
 
   final List<({String label, int pages, double heightRatio})> _yearData = const [
     (label: 'Jan', pages: 120, heightRatio: 0.35),
@@ -257,47 +228,56 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    String booksFinished = '12';
-    String pagesRead = '2.340';
-    String readingTime = '48j 30m';
-    String avgDailyTime = '42m/hari';
-    String notesCreated = '28';
-    String highlightsCount = '96';
+    final booksAsync = ref.watch(allBooksStreamProvider);
+    final notesAsync = ref.watch(allNotesStreamProvider);
 
-    List<({String label, int pages, double heightRatio})> activeChartData = _yearData;
+    final allBooks = booksAsync.valueOrNull ?? [];
+    final allNotes = notesAsync.valueOrNull ?? [];
 
-    if (_selectedPeriod == 'Hari Ini') {
-      booksFinished = '0';
-      pagesRead = '38';
-      readingTime = '45m';
-      avgDailyTime = '45m/hari';
-      notesCreated = '3';
-      highlightsCount = '8';
-      activeChartData = _todayData;
-    } else if (_selectedPeriod == 'Minggu') {
-      booksFinished = '1';
-      pagesRead = '145';
-      readingTime = '4j 15m';
-      avgDailyTime = '36m/hari';
-      notesCreated = '7';
-      highlightsCount = '24';
-      activeChartData = _weekData;
-    } else if (_selectedPeriod == 'Bulan') {
-      booksFinished = '3';
-      pagesRead = '480';
-      readingTime = '12j 50m';
-      avgDailyTime = '38m/hari';
-      notesCreated = '15';
-      highlightsCount = '42';
-      activeChartData = _monthData;
-    } else if (_selectedPeriod == 'Kustom') {
-      if (_customDateRange != null) {
-        final days = _customDateRange!.duration.inDays + 1;
-        pagesRead = '${days * 18}';
-        readingTime = '${(days * 0.6).toStringAsFixed(1)}j';
-        avgDailyTime = '36m/hari';
-        notesCreated = '${(days * 0.4).ceil()}';
-        highlightsCount = '${days * 2}';
+    final readBooks = allBooks.where((b) => b.lastReadAt != null).toList();
+    final realFinishedCount = allBooks.where((b) => b.totalPages > 0 && b.lastReadPage >= b.totalPages).length;
+    final realPagesRead = readBooks.fold<int>(0, (sum, b) => sum + (b.lastReadPage > 0 ? b.lastReadPage : 0));
+    final realNotesCount = allNotes.length;
+    final realHighlightsCount = allNotes.map((n) => n.highlight.id).toSet().length;
+
+    // Check if user has started reading or creating notes
+    final bool hasData = readBooks.isNotEmpty || realNotesCount > 0;
+
+    String booksFinished = '0';
+    String pagesRead = '0';
+    String readingTime = '0m';
+    String avgDailyTime = '0m/hari';
+    String notesCreated = '$realNotesCount';
+    String highlightsCount = '$realHighlightsCount';
+
+    List<({String label, int pages, double heightRatio})> activeChartData = [];
+
+    if (hasData) {
+      booksFinished = '$realFinishedCount';
+      pagesRead = '$realPagesRead';
+      final totalMinutes = (realPagesRead * 1.5).round();
+      if (totalMinutes >= 60) {
+        final hours = totalMinutes ~/ 60;
+        final mins = totalMinutes % 60;
+        readingTime = '${hours}j ${mins}m';
+      } else {
+        readingTime = '${totalMinutes}m';
+      }
+      avgDailyTime = '${(totalMinutes / 7).round()}m/hari';
+      switch (_selectedPeriod) {
+        case 'Hari Ini':
+          activeChartData = _todayData;
+          break;
+        case 'Minggu':
+          activeChartData = _weekData;
+          break;
+        case 'Bulan':
+          activeChartData = _monthData;
+          break;
+        case 'Tahun':
+        default:
+          activeChartData = _yearData;
+          break;
       }
     }
 
@@ -478,7 +458,7 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen> {
               const SizedBox(height: 24),
 
               // Active Reading Hours Section
-              _buildActiveReadingHoursSection(),
+              _buildActiveReadingHoursSection(hasData),
               const SizedBox(height: 24),
 
               // 2. TAMPILAN STATISTIK BERUPA TANGGAL & GRAFIK (Responsive Side-by-Side on Tablet)
@@ -486,65 +466,92 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen> {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(child: _buildDateCalendarStatsSection()),
+                    Expanded(child: _buildDateCalendarStatsSection(hasData)),
                     const SizedBox(width: 16),
                     Expanded(child: _buildMonthlyBarChartSection(pagesRead, readingTime, activeChartData)),
                   ],
                 ),
                 const SizedBox(height: 24),
               ] else ...[
-                _buildDateCalendarStatsSection(),
+                _buildDateCalendarStatsSection(hasData),
                 const SizedBox(height: 24),
                 _buildMonthlyBarChartSection(pagesRead, readingTime, activeChartData),
                 const SizedBox(height: 24),
               ],
 
           // Recent Session Logs with Timestamps
-          _buildRecentSessionLogs(),
+          _buildRecentSessionLogs(hasData),
           const SizedBox(height: 24),
 
           // Genre Favorit Section
           Text('Genre Favorit', style: AppTypography.headlineMedium),
           const SizedBox(height: 14),
-          Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.n200),
+          if (hasData)
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.n200),
+              ),
+              child: Column(
+                children: [
+                  _buildGenreRow(
+                    icon: '🌱',
+                    title: 'Self-Development',
+                    percentage: 40,
+                    color: AppColors.primaryTerracotta,
+                  ),
+                  const SizedBox(height: 14),
+                  _buildGenreRow(
+                    icon: '🧠',
+                    title: 'Psychology',
+                    percentage: 25,
+                    color: AppColors.primaryCoffee,
+                  ),
+                  const SizedBox(height: 14),
+                  _buildGenreRow(
+                    icon: '💼',
+                    title: 'Business & Productivity',
+                    percentage: 20,
+                    color: const Color(0xFFD97706),
+                  ),
+                  const SizedBox(height: 14),
+                  _buildGenreRow(
+                    icon: '🏛️',
+                    title: 'Philosophy',
+                    percentage: 15,
+                    color: const Color(0xFF059669),
+                  ),
+                ],
+              ),
+            )
+          else
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.n200),
+              ),
+              alignment: Alignment.center,
+              child: const Column(
+                children: [
+                  Icon(Icons.category_outlined, size: 36, color: AppColors.n500),
+                  SizedBox(height: 8),
+                  Text(
+                    'Belum Ada Data Genre',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.n700),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    'Genre buku favorit Anda akan muncul setelah Anda mulai membaca.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 11, color: AppColors.n500),
+                  ),
+                ],
+              ),
             ),
-            child: Column(
-              children: [
-                _buildGenreRow(
-                  icon: '🌱',
-                  title: 'Self-Development',
-                  percentage: 40,
-                  color: AppColors.primaryTerracotta,
-                ),
-                const SizedBox(height: 14),
-                _buildGenreRow(
-                  icon: '🧠',
-                  title: 'Psychology',
-                  percentage: 25,
-                  color: AppColors.primaryCoffee,
-                ),
-                const SizedBox(height: 14),
-                _buildGenreRow(
-                  icon: '💼',
-                  title: 'Business & Productivity',
-                  percentage: 20,
-                  color: const Color(0xFFD97706),
-                ),
-                const SizedBox(height: 14),
-                _buildGenreRow(
-                  icon: '🏛️',
-                  title: 'Philosophy',
-                  percentage: 15,
-                  color: const Color(0xFF059669),
-                ),
-              ],
-            ),
-          ),
           const SizedBox(height: 24),
 
           // Achievement Badge Card
@@ -561,26 +568,30 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen> {
             ),
             child: Column(
               children: [
-                const Row(
+                Row(
                   children: [
-                    Text('🏆', style: TextStyle(fontSize: 28)),
-                    SizedBox(width: 12),
+                    Text(booksFinished != '0' ? '🏆' : '🌱', style: const TextStyle(fontSize: 28)),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Hebat! Target Membaca Tercapai',
-                            style: TextStyle(
+                            booksFinished != '0'
+                                ? 'Hebat! Target Membaca Tercapai'
+                                : 'Mulai Perjalanan Membacamu',
+                            style: const TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
                               color: AppColors.primaryCoffee,
                             ),
                           ),
-                          SizedBox(height: 2),
+                          const SizedBox(height: 2),
                           Text(
-                            'Kamu telah menyelesaikan 12 buku tahun ini 🎉',
-                            style: TextStyle(
+                            booksFinished != '0'
+                                ? 'Kamu telah menyelesaikan $booksFinished buku tahun ini 🎉'
+                                : 'Buka buku di perpustakaan untuk mulai membaca hari ini 📖✨',
+                            style: const TextStyle(
                               fontSize: 12,
                               color: AppColors.n700,
                             ),
@@ -598,10 +609,12 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen> {
                     color: Colors.white.withOpacity(0.85),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Text(
-                    '"A reader today, a better me tomorrow."',
+                  child: Text(
+                    booksFinished != '0'
+                        ? '"A reader today, a better me tomorrow."'
+                        : '"Langkah pertama adalah awal dari seribu kebiasaan baik."',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontStyle: FontStyle.italic,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -621,7 +634,7 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen> {
   }
 
   /// TAMPILAN STATISTIK BERUPA TANGGAL (Requirement 2)
-  Widget _buildDateCalendarStatsSection() {
+  Widget _buildDateCalendarStatsSection([bool hasData = false]) {
     final selectedDayData = _septemberDaysData[_selectedCalendarDay] ??
         (minutes: 0, pages: 0, book: '-', sessions: <String>[], hasSticky: false, hasNote: false);
 
@@ -667,14 +680,14 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen> {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: const Color(0xFFFDE68A)),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.local_fire_department_rounded, size: 14, color: Color(0xFFD97706)),
-                    SizedBox(width: 4),
+                    const Icon(Icons.local_fire_department_rounded, size: 14, color: Color(0xFFD97706)),
+                    const SizedBox(width: 4),
                     Text(
-                      '14 Hari Streak',
-                      style: TextStyle(
+                      hasData ? '14 Hari Streak' : '0 Hari Streak',
+                      style: const TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF92400E),
@@ -1002,43 +1015,65 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(
-                height: 140,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: activeChartData.map((data) {
-                    return Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 2.0),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Tooltip(
-                              message: '${data.pages} halaman',
-                              child: Container(
-                                height: (100 * data.heightRatio).clamp(8.0, 110.0),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primaryTerracotta,
-                                  borderRadius: BorderRadius.circular(4),
+              if (activeChartData.isEmpty || pagesRead == '0')
+                Container(
+                  height: 140,
+                  alignment: Alignment.center,
+                  child: const Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.bar_chart_outlined, size: 40, color: AppColors.n500),
+                      SizedBox(height: 8),
+                      Text(
+                        'Belum ada data grafik membaca',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.n700),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Grafik akan terisi otomatis saat Anda mulai membaca buku.',
+                        style: TextStyle(fontSize: 11, color: AppColors.n500),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                SizedBox(
+                  height: 140,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: activeChartData.map((data) {
+                      return Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Tooltip(
+                                message: '${data.pages} halaman',
+                                child: Container(
+                                  height: (100 * data.heightRatio).clamp(8.0, 110.0),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primaryTerracotta,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              data.label,
-                              style: const TextStyle(
-                                fontSize: 10,
-                                color: AppColors.n500,
+                              const SizedBox(height: 8),
+                              Text(
+                                data.label,
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  color: AppColors.n500,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  }).toList(),
+                      );
+                    }).toList(),
+                  ),
                 ),
-              ),
             ],
           ),
         ),
@@ -1176,7 +1211,35 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen> {
     );
   }
 
-  Widget _buildActiveReadingHoursSection() {
+  Widget _buildActiveReadingHoursSection([bool hasData = false]) {
+    if (!hasData) {
+      return Container(
+        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.n200),
+        ),
+        alignment: Alignment.center,
+        child: const Column(
+          children: [
+            Icon(Icons.nightlight_round, size: 32, color: AppColors.n500),
+            SizedBox(height: 8),
+            Text(
+              'Belum Ada Jam Baca Aktif',
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.n700),
+            ),
+            SizedBox(height: 4),
+            Text(
+              'Waktu membaca favorit Anda akan dianalisis secara otomatis di sini.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 11, color: AppColors.n500),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -1267,7 +1330,51 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen> {
     );
   }
 
-  Widget _buildRecentSessionLogs() {
+  Widget _buildRecentSessionLogs([bool hasData = false]) {
+    if (!hasData) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Riwayat Sesi Membaca', style: AppTypography.headlineMedium),
+              Text(
+                'Berdasarkan Waktu',
+                style: AppTypography.labelSmall.copyWith(color: AppColors.n500),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.n200),
+            ),
+            alignment: Alignment.center,
+            child: const Column(
+              children: [
+                Icon(Icons.history_toggle_off, size: 36, color: AppColors.n500),
+                SizedBox(height: 8),
+                Text(
+                  'Belum Ada Riwayat Sesi',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.n700),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'Sesi membaca beserta durasi dan halaman akan tercatat di sini.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 11, color: AppColors.n500),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

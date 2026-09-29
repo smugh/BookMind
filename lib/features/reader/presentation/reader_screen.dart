@@ -35,7 +35,6 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   bool _isSearching = false;
   final TextEditingController _searchQueryController = TextEditingController();
   PdfTextSearchResult? _searchResult;
-  String? _selectedText;
   Uint8List? _bookBytes;
   bool _isLoadingBytes = true;
 
@@ -701,6 +700,12 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
               );
             },
           ),
+          // Add notes button in top navbar alongside Bookmark
+          IconButton(
+            icon: Icon(Icons.note_add_outlined, color: readerText),
+            tooltip: 'Add notes',
+            onPressed: () => _openAddReflection('', _currentPage),
+          ),
           // Font Settings (Aa)
           IconButton(
             icon: Text(
@@ -740,11 +745,6 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                             onPageChanged: (details) {
                               _updateReadingPosition(details.newPageNumber);
                             },
-                            onTextSelectionChanged: (details) {
-                              setState(() {
-                                _selectedText = details.selectedText;
-                              });
-                            },
                           )
                         : EpubViewer(
                             bytes: _bookBytes!,
@@ -757,74 +757,6 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                             },
                           ))
                     : _buildInteractiveReader(readerTextStyle, readerBg, readerText),
-
-                // Floating highlight action bar when text is selected in PDF
-                if (isPdf && _selectedText != null && _selectedText!.trim().isNotEmpty)
-                  Positioned(
-                    left: 20,
-                    right: 20,
-                    bottom: 74,
-                    child: Card(
-                      elevation: 8,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      color: Colors.white,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                        child: Row(
-                          children: [
-                            ...['yellow', 'green', 'blue'].map((colorName) {
-                              Color c;
-                              if (colorName == 'green') {
-                                c = AppColors.highlightGreen;
-                              } else if (colorName == 'blue') {
-                                c = AppColors.highlightBlue;
-                              } else {
-                                c = AppColors.highlightYellow;
-                              }
-
-                              return GestureDetector(
-                                onTap: () {
-                                  final quote = _selectedText!;
-                                  final page = _currentPage;
-                                  setState(() => _selectedText = null);
-                                  _openAddReflection(quote, page, defaultColor: colorName);
-                                },
-                                child: Container(
-                                  margin: const EdgeInsets.only(right: 8),
-                                  width: 26,
-                                  height: 26,
-                                  decoration: BoxDecoration(
-                                    color: c,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(color: Colors.black26),
-                                  ),
-                                ),
-                              );
-                            }),
-                            const Spacer(),
-                            ElevatedButton.icon(
-                              onPressed: () {
-                                final quote = _selectedText!;
-                                final page = _currentPage;
-                                setState(() => _selectedText = null);
-                                _openAddReflection(quote, page, initialIsSticky: true);
-                              },
-                              icon: const Icon(Icons.note_alt_outlined, size: 15),
-                              label: const Text('Catat Refleksi', style: TextStyle(fontSize: 12)),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primaryCoffee,
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                              ),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.close, size: 18),
-                              onPressed: () => setState(() => _selectedText = null),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
 
                 // Bottom Progress Bar & Reading Status
                 Positioned(

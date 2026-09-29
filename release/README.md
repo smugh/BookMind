@@ -10,11 +10,11 @@ Folder ini berisi berkas instalasi aplikasi **Book&Mind** yang siap rilis dan di
 | :--- | :--- |
 | **Nama Berkas** | [`BookMind-v1.0.0.apk`](./BookMind-v1.0.0.apk) |
 | **Versi Aplikasi** | `v1.0.0` (Build `1`) |
-| **Tanggal Build** | 28 September 2026 |
-| **Ukuran Berkas** | ~34.6 MB |
+| **Tanggal Build** | 29 September 2026 |
+| **Ukuran Berkas** | ~35.9 MB |
 | **Target OS** | Android 5.0 (API level 21) ke atas |
 | **Arsitektur** | Universal (`arm64-v8a`, `armeabi-v7a`, `x86_64`) |
-| **SHA-256 Checksum** | `cda3dae4677c21bcb8b1042273cb9139cb259a900e245b5c94e1753721c4b081` |
+| **SHA-256 Checksum** | `4ebff10f573e5277987c3859acf8d91f50b07aa0127c8767eb65f89527d22db4` |
 
 ---
 
@@ -34,11 +34,13 @@ adb install -r release/BookMind-v1.0.0.apk
 
 ---
 
-## ✨ Fitur Utama Versi 1.0.0
-- **Layar Cover PRD & Motivasi Membaca**: Halaman cover depan bernuansa hangat dengan visual artwork resmi PRD, rotasi kalimat motivasi inspiratif harian untuk membangun kebiasaan membaca, serta interaksi buka cover menggunakan tombol geser panah (*arrow slider*) responsif.
+## ✨ Fitur & Pembaruan Versi 1.0.0
+- **Layar Cover HD & Motivasi Membaca**: Visual artwork cover editorial definisi tinggi (HD) 1 halaman penuh tanpa tombol aktif lain kecuali tombol geser panah (*arrow slider*) untuk masuk, dilengkapi rotasi kalimat motivasi membaca harian.
+- **Ikon Aplikasi Resmi & Favicon**: Seluruh icon Android (hdpi, mdpi, xhdpi, xxhdpi, xxxhdpi) dan favicon web menggunakan logo resmi Book&Mind berbentuk buku terbuka bernuansa terracotta & cream.
+- **Pengalaman Catatan Tanpa Hambatan (Add Notes)**: Tombol *Add notes* tersedia langsung pada navbar atas di samping menu *Bookmark*, memungkinkan pencatatan refleksi per halaman tanpa perlu memblok teks atau terganggu floating action menu.
+- **Manajemen Profil & Kustomisasi Email**: Informasi default pengguna `"No name"` dan `"Noname@email.com"` yang dapat diperbarui secara interaktif melalui modal dialog profil.
+- **Statistik Baca Bersih (Zero-State)**: Tampilan statistik membaca awal yang bersih dan akurat tanpa dummy data—semua metrik, grafik, dan riwayat sesi terisi dinamis sesuai aktivitas riil.
 - **100% Offline & Bebas Iklan**: Tanpa ketergantungan server cloud, login, maupun analitik pihak ketiga. Seluruh buku, progres baca, dan catatan tersimpan aman di database SQLite lokal.
-- **Zero-Layout-Shift Ebook Reader**: Pembacaan PDF & EPUB yang nyaman dengan highlight teks natural tanpa mengganggu margin maupun struktur teks asli buku.
-- **Interactive Sticky Notes & Reflection**: Catatan dan refleksi tersimpan rapi dan dapat dibuka kembali kapan saja via modal sheet interaktif.
 - **Pengaturan Tampilan & Ekspor Catatan**: Kustomisasi foto profil dan foto cover depan dengan tombol reset ke default bawaan, serta ekspor catatan ke format Markdown (.md) dan Plain Text (.txt).
 - **Dukungan Bilingual**: Tersedia dalam Bahasa Indonesia 🇮🇩 dan English 🇬🇧.
 - **Informasi Creator**: Identitas persembahan karya oleh `smugh-tech`.

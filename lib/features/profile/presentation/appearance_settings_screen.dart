@@ -68,10 +68,16 @@ class AppearanceSettingsScreen extends ConsumerWidget {
                                   File(settings.profileImagePath!),
                                   fit: BoxFit.cover,
                                 )
-                              : const Center(
+                              : Center(
                                   child: Text(
-                                    'NP',
-                                    style: TextStyle(
+                                    settings.userName
+                                        .trim()
+                                        .split(RegExp(r'\s+'))
+                                        .where((s) => s.isNotEmpty)
+                                        .map((s) => s[0].toUpperCase())
+                                        .take(2)
+                                        .join(),
+                                    style: const TextStyle(
                                       color: AppColors.primaryCoffee,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 32,

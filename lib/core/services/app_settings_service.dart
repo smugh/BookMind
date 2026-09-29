@@ -10,17 +10,23 @@ class AppSettingsState {
   final String? coverImagePath;
   final String? profileImagePath;
   final String language; // 'id' or 'en'
+  final String userName;
+  final String userEmail;
 
   const AppSettingsState({
     this.coverImagePath,
     this.profileImagePath,
     this.language = 'id',
+    this.userName = 'No name',
+    this.userEmail = 'Noname@email.com',
   });
 
   AppSettingsState copyWith({
     String? Function()? coverImagePath,
     String? Function()? profileImagePath,
     String? language,
+    String? userName,
+    String? userEmail,
   }) {
     return AppSettingsState(
       coverImagePath:
@@ -28,6 +34,8 @@ class AppSettingsState {
       profileImagePath:
           profileImagePath != null ? profileImagePath() : this.profileImagePath,
       language: language ?? this.language,
+      userName: userName ?? this.userName,
+      userEmail: userEmail ?? this.userEmail,
     );
   }
 }
@@ -36,6 +44,8 @@ class AppSettingsNotifier extends StateNotifier<AppSettingsState> {
   static const _keyCover = 'settings_cover_image_path';
   static const _keyProfile = 'settings_profile_image_path';
   static const _keyLanguage = 'settings_language';
+  static const _keyUserName = 'settings_user_name';
+  static const _keyUserEmail = 'settings_user_email';
 
   AppSettingsNotifier() : super(const AppSettingsState()) {
     _loadFromPrefs();
@@ -47,6 +57,8 @@ class AppSettingsNotifier extends StateNotifier<AppSettingsState> {
       final coverPath = prefs.getString(_keyCover);
       final profilePath = prefs.getString(_keyProfile);
       final language = prefs.getString(_keyLanguage) ?? 'id';
+      final userName = prefs.getString(_keyUserName) ?? 'No name';
+      final userEmail = prefs.getString(_keyUserEmail) ?? 'Noname@email.com';
 
       // Validate files if paths exist
       String? validCover;
@@ -67,6 +79,8 @@ class AppSettingsNotifier extends StateNotifier<AppSettingsState> {
         coverImagePath: validCover,
         profileImagePath: validProfile,
         language: language,
+        userName: userName,
+        userEmail: userEmail,
       );
     } catch (e) {
       debugPrint('Error loading AppSettings: $e');
@@ -168,6 +182,13 @@ class AppSettingsNotifier extends StateNotifier<AppSettingsState> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keyLanguage, lang);
     state = state.copyWith(language: lang);
+  }
+
+  Future<void> updateProfileInfo({required String name, required String email}) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyUserName, name);
+    await prefs.setString(_keyUserEmail, email);
+    state = state.copyWith(userName: name, userEmail: email);
   }
 }
 

@@ -23,3 +23,10 @@ final allTagsStreamProvider = StreamProvider<List<TagEntry>>((ref) {
   final db = ref.watch(appDatabaseProvider);
   return db.watchAllTags();
 });
+
+// Stream of all notes with details
+final allNotesStreamProvider = StreamProvider<List<NoteWithDetails>>((ref) {
+  final db = ref.watch(appDatabaseProvider);
+  return db.watchAllNotesWithDetails();
+});
+

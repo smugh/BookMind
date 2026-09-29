@@ -7,6 +7,7 @@ import '../../../app/main_navigation_shell.dart';
 import '../../../core/localization/app_strings.dart';
 import '../../../core/services/app_settings_service.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../shared/widgets/bookmind_logo.dart';
 
 class CoverScreen extends ConsumerStatefulWidget {
   const CoverScreen({super.key});
@@ -67,108 +68,41 @@ class _CoverScreenState extends ConsumerState<CoverScreen> {
             },
           ),
 
-          // 2. High-contrast Dark/Warm Gradient Scrim
+          // 2. High-contrast Dark/Warm Gradient Scrim (Keeps upper HD artwork vivid, darkens bottom for readability)
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Colors.black.withOpacity(0.45),
-                  Colors.black.withOpacity(0.15),
-                  Colors.black.withOpacity(0.60),
-                  const Color(0xFF160E0A).withOpacity(0.95),
+                  Colors.transparent,
+                  Colors.transparent,
+                  Colors.black.withOpacity(0.35),
+                  const Color(0xFF160E0A).withOpacity(0.92),
                 ],
-                stops: const [0.0, 0.30, 0.65, 1.0],
+                stops: const [0.0, 0.45, 0.72, 1.0],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
             ),
           ),
 
-          // 3. Screen Content
+          // 3. Screen Content (No active menus or buttons except slide slider)
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Top Brand Bar (No skip button)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF2C221C).withOpacity(0.70),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: const Color(0xFFE07A5F).withOpacity(0.35),
-                          ),
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.auto_stories,
-                              size: 16,
-                              color: Color(0xFFE07A5F),
-                            ),
-                            SizedBox(width: 7),
-                            Text(
-                              'Book&Mind',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ],
+                  // If custom cover photo is used, show brand logo dynamically
+                  if (settings.coverImagePath != null && settings.coverImagePath!.isNotEmpty)
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.only(top: 16),
+                        child: BookMindLogo(
+                          style: BookMindLogoStyle.vertical,
+                          iconSize: 52,
                         ),
                       ),
-                      // Language Switcher Chip
-                      GestureDetector(
-                        onTap: () {
-                          final newLang = lang == 'id' ? 'en' : 'id';
-                          ref.read(appSettingsProvider.notifier).setLanguage(newLang);
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF2C221C).withOpacity(0.75),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: const Color(0xFFE07A5F).withOpacity(0.40),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                lang == 'id' ? '🇮🇩 ID' : '🇬🇧 EN',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              Icon(
-                                Icons.swap_horiz,
-                                size: 14,
-                                color: Colors.white.withOpacity(0.7),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
 
                   const Spacer(),
 
