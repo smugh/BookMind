@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Book&amp;Mind — Personal Reading Knowledge System</title>
+  <title>BookMind by Smugh-Tech — Personal Reading Knowledge System</title>
   <link rel="icon" type="image/png" href="assets/app_icon.png">
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -12,14 +12,14 @@
   <!-- Navbar -->
   <header class="navbar-wrap">
     <div class="container navbar">
-      <a href="#" class="brand-logo" aria-label="Book&amp;Mind Home">
-        <img src="assets/logo_brand.png" alt="Book&amp;Mind">
+      <a href="#" class="brand-logo-wrap" aria-label="BookMind Home">
+        <img src="assets/logo_brand.png" alt="BookMind" class="brand-logo-img">
+        <span class="brand-by-pill">by Smugh-Tech</span>
       </a>
 
       <ul class="nav-links">
         <li><a href="#fitur" class="nav-link" data-i18n="navFeatures">Fitur</a></li>
-        <li><a href="#screenshots" class="nav-link" data-i18n="navScreenshots">Screenshots</a></li>
-        <li><a href="#user-guideline" class="nav-link guide-pill" data-i18n="navGuideline">📖 User Guideline</a></li>
+        <li><a href="#alasan-dan-nilai" class="nav-link" data-i18n="navStory">Alasan &amp; Nilai</a></li>
       </ul>
 
       <div class="nav-actions">
@@ -30,8 +30,8 @@
           <button class="lang-toggle-btn" data-lang="en" id="langEnBtn" aria-label="English">EN</button>
         </div>
 
-        <!-- Download APK Button -->
-        <a href="https://github.com/smugh/BookMind/releases/download/v.1.0.2/BookMind-v.1.0.2.apk" class="btn btn-download-apk" id="downloadApkBtn" aria-label="Download APK" target="_blank" rel="noopener noreferrer" download="BookMind-v.1.0.2.apk">
+        <!-- Download APK Button (Kept only in Navbar) -->
+        <a href="https://github.com/smugh/BookMind/releases/download/v.1.0.1/BookMind-v1.0.1.apk" class="btn btn-download-apk" id="downloadApkBtn" aria-label="Download APK" target="_blank" rel="noopener noreferrer" download="BookMind-v1.0.1.apk">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
             <polyline points="7 10 12 15 17 10"></polyline>
@@ -43,38 +43,26 @@
     </div>
   </header>
 
-  <!-- Hero Section -->
+  <!-- Hero Section (Button-free as requested, keeping focus on core message & frameless visual) -->
   <section class="hero">
     <div class="container hero-layout">
       <div class="hero-text">
-        <div class="hero-tagline" data-i18n="heroTagline">READ &bull; REFLECT &bull; GROW</div>
+        <div class="hero-tagline" data-i18n="heroTagline">BOOKMIND BY SMUGH-TECH &bull; READ &bull; REFLECT &bull; GROW</div>
         <h1 class="hero-title" data-i18n="heroTitle">Baca Lebih Dalam.<br><span>Ingat Lebih Lama.</span></h1>
-        <p class="hero-desc" data-i18n="heroDesc">Personal reading knowledge system offline untuk Android.</p>
-
-        <div class="hero-cta">
-          <a href="https://github.com/smugh/BookMind/releases/download/v.1.0.2/BookMind-v.1.0.2.apk" class="btn btn-terracotta hero-btn-apk" target="_blank" rel="noopener noreferrer" download="BookMind-v.1.0.2.apk">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <polyline points="7 10 12 15 17 10"></polyline>
-              <line x1="12" y1="15" x2="12" y2="3"></line>
-            </svg>
-            <span data-i18n="heroBtnDownload">Unduh APK (v1.0.2)</span>
-          </a>
-          <a href="#screenshots" class="btn btn-secondary" data-i18n="heroBtnScreenshots">Screenshots</a>
-          <a href="#user-guideline" class="btn btn-secondary" data-i18n="heroBtnGuideline">User Guideline</a>
-        </div>
+        <p class="hero-desc" data-i18n="heroDesc">Personal reading knowledge system offline untuk Android. Ubah bacaan pasif menjadi aset pengetahuan yang bertumbuh.</p>
 
         <div class="hero-pills">
           <div class="pill-item" data-i18n="heroPillOffline">100% Offline</div>
           <div class="pill-item" data-i18n="heroPillFormats">PDF &amp; EPUB</div>
           <div class="pill-item" data-i18n="heroPillSqlite">SQLite Local</div>
+          <div class="pill-item" data-i18n="heroPillNoAccount">Tanpa Akun &amp; Login</div>
         </div>
       </div>
 
       <!-- Hero Screen (Frameless & Clean) -->
       <div class="hero-phone-wrap">
         <div class="hero-screen-wrap">
-          <img src="assets/reader_highlight.png" alt="Book&amp;Mind Reader" class="hero-screen-img" id="heroImg">
+          <img src="assets/reader_highlight.png" alt="BookMind Reader" class="hero-screen-img" id="heroImg">
         </div>
       </div>
     </div>
@@ -111,157 +99,91 @@
     </div>
   </section>
 
-  <!-- Screenshots Showcase (Frameless, Clean, Non-clickable) -->
-  <section class="ui-section" id="screenshots">
+  <!-- Section: Alasan Dibuatnya APK ini & Value yang Ditawarkan -->
+  <section class="story-section" id="alasan-dan-nilai">
     <div class="container">
+      <!-- Section Header -->
       <div class="section-head">
-        <div class="section-tag" data-i18n="screensTag">ANTARMUKA APLIKASI</div>
-        <h2 data-i18n="screensTitle">Screenshots</h2>
-        <p class="section-sub" data-i18n="screensSub">Antarmuka minimalis bernuansa buku fisik yang dirancang untuk fokus membaca tanpa distraksi.</p>
+        <div class="section-tag" data-i18n="storyTag">LATAR BELAKANG &bull; BY SMUGH-TECH</div>
+        <h2 data-i18n="storyTitle">Mengapa BookMind Dibuat?</h2>
+        <p class="section-sub" data-i18n="storySub">Ebook reader konvensional hanya fokus pada membaca pasif. BookMind dibangun untuk memastikan insight berharga dari setiap buku tidak hilang begitu saja.</p>
       </div>
 
-      <div class="ui-grid-6">
-        <!-- 01: Reader & Highlight -->
-        <div class="ui-card">
-          <div class="ui-card-meta">
-            <span class="ui-card-tag" data-i18n="card1Tag">01 &bull; PEMBACA</span>
-            <h3 class="ui-card-title" data-i18n="card1Title">Reader &amp; Highlight</h3>
-            <p class="ui-card-desc" data-i18n="card1Desc">Anotasi multi-warna &amp; navigasi progres membaca</p>
+      <!-- Story Split: Problem vs Solution with Reader Highlight Image -->
+      <div class="story-card-split">
+        <div class="story-info-col">
+          <!-- Problem Box -->
+          <div class="story-box story-box-problem">
+            <div class="story-box-badge" data-i18n="problemTag">MASALAH YANG DIHADAPI</div>
+            <h3 data-i18n="problemTitle">Pengetahuan Sering Hilang Begitu Buku Ditutup</h3>
+            <p data-i18n="problemDesc">
+              Saat membaca buku, kita kerap menemukan ide atau kutipan luar biasa. Namun di reader biasa, highlight terkurung di dalam file buku, catatan sulit dicari ulang, dan insight tidak pernah terhubung lintas buku.
+            </p>
           </div>
-          <div class="ui-screen-wrap">
-            <img src="assets/reader_highlight.png" alt="Reader &amp; Highlight" class="ui-screen-img" id="screenImg1" loading="lazy">
+
+          <!-- Solution Box -->
+          <div class="story-box story-box-solution">
+            <div class="story-box-badge" data-i18n="solutionTag">SOLUSI</div>
+            <h3 data-i18n="solutionTitle">Personal Reading Knowledge System</h3>
+            <p data-i18n="solutionDesc">
+              BookMind dibangun sebagai ruang baca personal: tangkap kutipan penting, tulis pemikiran orisinalmu (*My Reflection*), dan hubungkan topik lintas buku ke dalam satu sistem terpusat yang 100% offline.
+            </p>
           </div>
         </div>
 
-        <!-- 02: Perpustakaan -->
-        <div class="ui-card">
-          <div class="ui-card-meta">
-            <span class="ui-card-tag" data-i18n="card2Tag">02 &bull; KATALOG</span>
-            <h3 class="ui-card-title" data-i18n="card2Title">Perpustakaan</h3>
-            <p class="ui-card-desc" data-i18n="card2Desc">Koleksi offline &amp; filter status baca terorganisir</p>
-          </div>
-          <div class="ui-screen-wrap">
-            <img src="assets/home_library.png" alt="Perpustakaan" class="ui-screen-img" id="screenImg2" loading="lazy">
-          </div>
-        </div>
-
-        <!-- 03: Knowledge Hub -->
-        <div class="ui-card">
-          <div class="ui-card-meta">
-            <span class="ui-card-tag" data-i18n="card3Tag">03 &bull; INSIGHT</span>
-            <h3 class="ui-card-title" data-i18n="card3Title">Knowledge Hub</h3>
-            <p class="ui-card-desc" data-i18n="card3Desc">Sentralisasi kutipan, refleksi, &amp; pencarian cepat</p>
-          </div>
-          <div class="ui-screen-wrap">
-            <img src="assets/knowledge_hub.png" alt="Knowledge Hub" class="ui-screen-img" id="screenImg3" loading="lazy">
-          </div>
-        </div>
-
-        <!-- 04: Statistik Membaca -->
-        <div class="ui-card">
-          <div class="ui-card-meta">
-            <span class="ui-card-tag" data-i18n="card4Tag">04 &bull; ANALISIS</span>
-            <h3 class="ui-card-title" data-i18n="card4Title">Statistik Membaca</h3>
-            <p class="ui-card-desc" data-i18n="card4Desc">Metrik halaman dibaca &amp; grafik kebiasaan membaca</p>
-          </div>
-          <div class="ui-screen-wrap">
-            <img src="assets/reading_stats.png" alt="Statistik Membaca" class="ui-screen-img" id="screenImg4" loading="lazy">
-          </div>
-        </div>
-
-        <!-- 05: Detail Buku -->
-        <div class="ui-card">
-          <div class="ui-card-meta">
-            <span class="ui-card-tag" data-i18n="card5Tag">05 &bull; DOKUMEN</span>
-            <h3 class="ui-card-title" data-i18n="card5Title">Detail Buku</h3>
-            <p class="ui-card-desc" data-i18n="card5Desc">Sinopsis, cover otomatis, &amp; metadata file buku</p>
-          </div>
-          <div class="ui-screen-wrap">
-            <img src="assets/book_detail.png" alt="Detail Buku" class="ui-screen-img" id="screenImg5" loading="lazy">
-          </div>
-        </div>
-
-        <!-- 06: Onboarding -->
-        <div class="ui-card">
-          <div class="ui-card-meta">
-            <span class="ui-card-tag" data-i18n="card6Tag">06 &bull; ONBOARDING</span>
-            <h3 class="ui-card-title" data-i18n="card6Title">Onboarding</h3>
-            <p class="ui-card-desc" data-i18n="card6Desc">Pengenalan filosofi baca mendalam &amp; alur aplikasi</p>
-          </div>
-          <div class="ui-screen-wrap">
-            <img src="assets/onboarding.png" alt="Onboarding" class="ui-screen-img" id="screenImg6" loading="lazy">
+        <div class="story-img-col">
+          <div class="story-screen-wrap">
+            <img src="assets/reader_highlight.png" alt="Reader Highlight UI" class="story-screen-img" id="storyImg1">
+            <div class="story-floating-caption" data-i18n="storyImg1Caption">
+              📖 Seleksi teks &amp; beri penanda langsung di halaman
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </section>
 
-  <!-- User Guideline (Enhanced & Frameless Showcase) -->
-  <section class="guideline-section" id="user-guideline">
-    <div class="container">
-      <div class="section-head">
-        <div class="section-tag" data-i18n="guideSectionTag">PANDUAN APLIKASI</div>
-        <h2 data-i18n="guideSectionTitle">User Guideline</h2>
-      </div>
-
-      <!-- Segmented Stepper Bar -->
-      <div class="guide-stepper-bar">
-        <div class="g-step-tab active" data-step="1">
-          <span class="g-num-badge">01</span>
-          <span class="g-step-title" data-i18n="guideTab1">Import Buku</span>
+      <!-- Core Values Layout with Knowledge Hub Image -->
+      <div class="values-wrapper">
+        <div class="values-head">
+          <div class="section-tag" data-i18n="valuesTag">VALUE YANG DITAWARKAN</div>
+          <h2 data-i18n="valuesTitle">Nilai Utama untuk Pembaca</h2>
         </div>
-        <div class="g-step-tab" data-step="2">
-          <span class="g-num-badge">02</span>
-          <span class="g-step-title" data-i18n="guideTab2">Highlight Teks</span>
-        </div>
-        <div class="g-step-tab" data-step="3">
-          <span class="g-num-badge">03</span>
-          <span class="g-step-title" data-i18n="guideTab3">Refleksi &amp; Tag</span>
-        </div>
-        <div class="g-step-tab" data-step="4">
-          <span class="g-num-badge">04</span>
-          <span class="g-step-title" data-i18n="guideTab4">Knowledge Hub</span>
-        </div>
-      </div>
 
-      <!-- Main Showcase Card (2-Column Split) -->
-      <div class="guide-showcase-card">
-        <!-- Left Column: Step Details -->
-        <div class="guide-info-side">
-          <div class="guide-step-tag" id="guideTag">LANGKAH 01 DARI 04</div>
-          <h3 class="guide-step-h3" id="guideTitle">Import PDF &amp; EPUB</h3>
-          <p class="guide-step-lead" id="guideLead">
-            Tambahkan dokumen buku langsung dari penyimpanan perangkat. Metadata judul, pengarang, dan sampul buku otomatis terekstrak ke katalog lokal.
-          </p>
+        <div class="values-layout">
+          <!-- Left: 3 Value Points -->
+          <div class="values-list">
+            <div class="value-item">
+              <div class="value-icon">💡</div>
+              <div class="value-content">
+                <h4 data-i18n="val1Title">Refleksi Aktif &amp; Multi-Tagging</h4>
+                <p data-i18n="val1Desc">Kutipan tidak berhenti sebagai teks pasif. Tulis pemikiran orisinalmu (*My Reflection*) dan sematkan multi-tag topik lintas buku.</p>
+              </div>
+            </div>
 
-          <ul class="guide-bullet-list" id="guideBullets">
-            <li class="guide-bullet-item">
-              <span class="guide-bullet-icon">✓</span>
-              <span>Dukungan file format .PDF &amp; .EPUB</span>
-            </li>
-            <li class="guide-bullet-item">
-              <span class="guide-bullet-icon">✓</span>
-              <span>Ekstraksi cover &amp; metadata otomatis</span>
-            </li>
-            <li class="guide-bullet-item">
-              <span class="guide-bullet-icon">✓</span>
-              <span>100% offline, data tetap aman di perangkat</span>
-            </li>
-          </ul>
+            <div class="value-item">
+              <div class="value-icon">⚡</div>
+              <div class="value-content">
+                <h4 data-i18n="val2Title">Knowledge Hub &amp; Deep Link Instan</h4>
+                <p data-i18n="val2Desc">Sentralisasi ribuan catatan dari semua buku. Cari cepat dengan mesin SQLite FTS, dan 1-klik lompat langsung kembali ke nomor halaman asal.</p>
+              </div>
+            </div>
 
-          <div class="guide-actions-row">
-            <button class="guide-step-btn" id="guidePrev">&larr; Sebelumnya</button>
-            <button class="guide-step-btn next-btn" id="guideNext">Langkah Berikutnya &rarr;</button>
+            <div class="value-item">
+              <div class="value-icon">🛡️</div>
+              <div class="value-content">
+                <h4 data-i18n="val3Title">100% Offline &amp; Kedaulatan Data</h4>
+                <p data-i18n="val3Desc">Tanpa login, tanpa akun, tanpa pelacakan cloud, dan bebas iklan. Buku dan seluruh catatan Anda tersimpan aman secara lokal di perangkat.</p>
+              </div>
+            </div>
           </div>
-        </div>
 
-        <!-- Right Column: Frameless Clean Screenshot Showcase -->
-        <div class="guide-mockup-side">
-          <div class="guide-screen-wrap">
-            <img src="assets/home_library.png" alt="Preview Panduan" class="guide-screen-img" id="guideImg">
-          </div>
-          <div class="guide-floating-badge" id="guideBadge">
-            📚 Koleksi &amp; Resume Halaman
+          <!-- Right: Knowledge Hub UI Showcase -->
+          <div class="values-img-col">
+            <div class="story-screen-wrap">
+              <img src="assets/knowledge_hub.png" alt="Knowledge Hub UI" class="story-screen-img" id="storyImg2">
+              <div class="story-floating-caption" data-i18n="storyImg2Caption">
+                🧠 Knowledge Hub: Seluruh catatan &amp; FTS search
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -272,10 +194,14 @@
   <footer class="footer-min">
     <div class="container footer-flex">
       <div class="footer-brand">
-        <img src="assets/logo_brand.png" alt="Book&amp;Mind">
-        <span>Book&amp;Mind</span>
+        <img src="assets/logo_brand.png" alt="BookMind">
+        <div class="footer-brand-text">
+          <span class="footer-title">BookMind</span>
+          <span class="footer-by">by Smugh-Tech</span>
+        </div>
       </div>
-      <div data-i18n="footerNote">Offline-First Android App &bull; Drift SQLite</div>
+      <div class="footer-center" data-i18n="footerNote">Offline-First Android App &bull; Drift SQLite</div>
+      <div class="footer-copy" data-i18n="footerCopy">&copy; 2026 BookMind by Smugh-Tech. All rights reserved.</div>
     </div>
   </footer>
 
