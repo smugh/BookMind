@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
       footerCopy: '&copy; 2026 BookMind by Smugh-Tech. All rights reserved.',
 
       // Toast Notice
-      toastApkDownloading: '📥 Mengunduh BookMind v1.0.1 APK...'
+      toastApkDownloading: '📥 Mengunduh BookMind v.1.0.2 APK...'
     },
     en: {
       // Navbar
@@ -133,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
       footerCopy: '&copy; 2026 BookMind by Smugh-Tech. All rights reserved.',
 
       // Toast Notice
-      toastApkDownloading: '📥 Downloading BookMind v1.0.1 APK...'
+      toastApkDownloading: '📥 Downloading BookMind v.1.0.2 APK...'
     }
   };
 
@@ -219,7 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (downloadApkBtn) {
     downloadApkBtn.addEventListener('click', () => {
-      const msg = i18n[currentLang]?.toastApkDownloading || '📥 Mengunduh BookMind v1.0.1 APK...';
+      const msg = i18n[currentLang]?.toastApkDownloading || '📥 Mengunduh BookMind v.1.0.2 APK...';
       showToast(msg);
     });
   }
