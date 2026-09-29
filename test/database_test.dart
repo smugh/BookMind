@@ -72,5 +72,45 @@ void main() {
     final updatedBook = await db.getBookById('book-1');
     expect(updatedBook?.lastReadPage, 85);
     expect(updatedBook?.lastReadAt, isNotNull);
+
+    // 6. Reading Session CRUD Operations (Bug fixing Requirement 1 & 2)
+    final startTime = DateTime(2026, 9, 29, 14, 0);
+    final endTime = DateTime(2026, 9, 29, 14, 30);
+    await db.insertReadingSession(
+      ReadingSessionsCompanion(
+        id: const Value('session-1'),
+        bookId: const Value('book-1'),
+        startTime: Value(startTime),
+        endTime: Value(endTime),
+        durationSeconds: const Value(1800),
+        startPage: const Value(85),
+        endPage: const Value(105),
+        pagesRead: const Value(21),
+      ),
+    );
+
+    final sessions = await db.getAllReadingSessionsWithBook();
+    expect(sessions.length, 1);
+    expect(sessions.first.book.title, 'Atomic Habits');
+    expect(sessions.first.session.durationSeconds, 1800);
+    expect(sessions.first.session.pagesRead, 21);
+    expect(sessions.first.session.startPage, 85);
+    expect(sessions.first.session.endPage, 105);
+
+    // Delete Session
+    await db.deleteReadingSession('session-1');
+    final afterDelete = await db.getAllReadingSessionsWithBook();
+    expect(afterDelete.isEmpty, true);
+
+    // 7. Update Book General Information (Title & Genre)
+    await db.updateBookInfo(
+      id: 'book-1',
+      title: 'Atomic Habits 2nd Edition',
+      author: 'James Clear',
+      genre: 'Self-Development',
+    );
+    final editedBook = await db.getBookById('book-1');
+    expect(editedBook?.title, 'Atomic Habits 2nd Edition');
+    expect(editedBook?.genre, 'Self-Development');
   });
 }

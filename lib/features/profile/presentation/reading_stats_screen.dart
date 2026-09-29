@@ -4,6 +4,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/date_formatter.dart';
 import '../../../core/utils/responsive.dart';
+import '../../../data/database/app_database.dart';
 import '../../../data/database/database_provider.dart';
 
 class ReadingStatsScreen extends ConsumerStatefulWidget {
@@ -19,56 +20,27 @@ class ReadingStatsScreen extends ConsumerStatefulWidget {
 }
 
 class _ReadingStatsScreenState extends ConsumerState<ReadingStatsScreen> {
-  String _selectedPeriod = 'Tahun';
+  String _selectedPeriod = 'Hari Ini';
   bool _hasDateTimePermission = false;
   DateTime _currentDeviceTime = DateTime.now();
   DateTimeRange? _customDateRange;
 
-  int _selectedCalendarDay = 27; // Default to active day 27
+  late DateTime _chartSelectedDate;
+  String _selectedChartBookId = 'all';
+  late int _selectedCalendarDay;
+  late DateTime _calendarMonth;
+  bool _showAllSessions = false;
 
   final List<String> _periods = ['Hari Ini', 'Minggu', 'Bulan', 'Tahun', 'Kustom'];
 
-  // Calendar dataset for active days (empty on clean install)
-  final Map<int, ({int minutes, int pages, String book, List<String> sessions, bool hasSticky, bool hasNote})> _septemberDaysData = {};
-
-  final List<({String label, int pages, double heightRatio})> _yearData = const [
-    (label: 'Jan', pages: 120, heightRatio: 0.35),
-    (label: 'Feb', pages: 180, heightRatio: 0.50),
-    (label: 'Mar', pages: 90, heightRatio: 0.25),
-    (label: 'Apr', pages: 210, heightRatio: 0.60),
-    (label: 'Mei', pages: 260, heightRatio: 0.72),
-    (label: 'Jun', pages: 150, heightRatio: 0.42),
-    (label: 'Jul', pages: 240, heightRatio: 0.68),
-    (label: 'Agu', pages: 320, heightRatio: 0.90),
-    (label: 'Sep', pages: 280, heightRatio: 0.78),
-    (label: 'Okt', pages: 190, heightRatio: 0.52),
-    (label: 'Nov', pages: 140, heightRatio: 0.38),
-    (label: 'Des', pages: 170, heightRatio: 0.46),
-  ];
-
-  final List<({String label, int pages, double heightRatio})> _monthData = const [
-    (label: 'Mgg 1', pages: 110, heightRatio: 0.75),
-    (label: 'Mgg 2', pages: 140, heightRatio: 0.95),
-    (label: 'Mgg 3', pages: 95, heightRatio: 0.65),
-    (label: 'Mgg 4', pages: 135, heightRatio: 0.90),
-  ];
-
-  final List<({String label, int pages, double heightRatio})> _weekData = const [
-    (label: 'Sen', pages: 18, heightRatio: 0.60),
-    (label: 'Sel', pages: 24, heightRatio: 0.80),
-    (label: 'Rab', pages: 12, heightRatio: 0.40),
-    (label: 'Kam', pages: 30, heightRatio: 1.00),
-    (label: 'Jum', pages: 20, heightRatio: 0.65),
-    (label: 'Sab', pages: 25, heightRatio: 0.83),
-    (label: 'Min', pages: 16, heightRatio: 0.53),
-  ];
-
-  final List<({String label, int pages, double heightRatio})> _todayData = const [
-    (label: '08:00', pages: 6, heightRatio: 0.30),
-    (label: '12:00', pages: 8, heightRatio: 0.40),
-    (label: '16:00', pages: 4, heightRatio: 0.20),
-    (label: '20:00', pages: 20, heightRatio: 1.00),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    _chartSelectedDate = DateTime(now.year, now.month, now.day);
+    _selectedCalendarDay = now.day;
+    _calendarMonth = DateTime(now.year, now.month);
+  }
 
   void _requestDateTimePermission() {
     showDialog(
@@ -230,56 +202,46 @@ class _ReadingStatsScreenState extends ConsumerState<ReadingStatsScreen> {
   Widget build(BuildContext context) {
     final booksAsync = ref.watch(allBooksStreamProvider);
     final notesAsync = ref.watch(allNotesStreamProvider);
+    final sessionsAsync = ref.watch(allReadingSessionsStreamProvider);
 
     final allBooks = booksAsync.valueOrNull ?? [];
     final allNotes = notesAsync.valueOrNull ?? [];
+    final allSessions = sessionsAsync.valueOrNull ?? [];
 
-    final readBooks = allBooks.where((b) => b.lastReadAt != null).toList();
+    // Triggered strictly by recorded reading sessions (Requirement 1, 2, 4)
+    final bool hasData = allSessions.isNotEmpty;
+
+    final totalReadingSeconds = allSessions.fold<int>(0, (sum, s) => sum + s.session.durationSeconds);
+    final totalReadingMinutes = totalReadingSeconds ~/ 60;
+    final totalPagesRead = allSessions.fold<int>(0, (sum, s) => sum + s.session.pagesRead);
     final realFinishedCount = allBooks.where((b) => b.totalPages > 0 && b.lastReadPage >= b.totalPages).length;
-    final realPagesRead = readBooks.fold<int>(0, (sum, b) => sum + (b.lastReadPage > 0 ? b.lastReadPage : 0));
     final realNotesCount = allNotes.length;
     final realHighlightsCount = allNotes.map((n) => n.highlight.id).toSet().length;
 
-    // Check if user has started reading or creating notes
-    final bool hasData = readBooks.isNotEmpty || realNotesCount > 0;
-
-    String booksFinished = '0';
-    String pagesRead = '0';
+    String booksFinished = hasData ? '$realFinishedCount' : '0';
+    String pagesRead = hasData ? '$totalPagesRead' : '0';
     String readingTime = '0m';
-    String avgDailyTime = '0m/hari';
-    String notesCreated = '$realNotesCount';
-    String highlightsCount = '$realHighlightsCount';
-
-    List<({String label, int pages, double heightRatio})> activeChartData = [];
-
     if (hasData) {
-      booksFinished = '$realFinishedCount';
-      pagesRead = '$realPagesRead';
-      final totalMinutes = (realPagesRead * 1.5).round();
-      if (totalMinutes >= 60) {
-        final hours = totalMinutes ~/ 60;
-        final mins = totalMinutes % 60;
+      if (totalReadingMinutes >= 60) {
+        final hours = totalReadingMinutes ~/ 60;
+        final mins = totalReadingMinutes % 60;
         readingTime = '${hours}j ${mins}m';
+      } else if (totalReadingMinutes > 0) {
+        readingTime = '${totalReadingMinutes}m';
       } else {
-        readingTime = '${totalMinutes}m';
-      }
-      avgDailyTime = '${(totalMinutes / 7).round()}m/hari';
-      switch (_selectedPeriod) {
-        case 'Hari Ini':
-          activeChartData = _todayData;
-          break;
-        case 'Minggu':
-          activeChartData = _weekData;
-          break;
-        case 'Bulan':
-          activeChartData = _monthData;
-          break;
-        case 'Tahun':
-        default:
-          activeChartData = _yearData;
-          break;
+        readingTime = '${totalReadingSeconds}s';
       }
     }
+
+    final distinctActiveDays = allSessions
+        .map((s) => '${s.session.startTime.year}-${s.session.startTime.month}-${s.session.startTime.day}')
+        .toSet()
+        .length;
+    String avgDailyTime = hasData
+        ? '${(totalReadingMinutes / (distinctActiveDays > 0 ? distinctActiveDays : 1)).round()}m/hari'
+        : '0m/hari';
+    String notesCreated = '$realNotesCount';
+    String highlightsCount = '$realHighlightsCount';
 
     final isTablet = Responsive.isTabletOrDesktop(context);
 
@@ -457,8 +419,8 @@ class _ReadingStatsScreenState extends ConsumerState<ReadingStatsScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Active Reading Hours Section
-              _buildActiveReadingHoursSection(hasData),
+              // Active Reading Hours Section (Requirement 3)
+              _buildActiveReadingHoursSection(allSessions),
               const SizedBox(height: 24),
 
               // 2. TAMPILAN STATISTIK BERUPA TANGGAL & GRAFIK (Responsive Side-by-Side on Tablet)
@@ -466,93 +428,26 @@ class _ReadingStatsScreenState extends ConsumerState<ReadingStatsScreen> {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(child: _buildDateCalendarStatsSection(hasData)),
+                    Expanded(child: _buildDateCalendarStatsSection(allSessions)),
                     const SizedBox(width: 16),
-                    Expanded(child: _buildMonthlyBarChartSection(pagesRead, readingTime, activeChartData)),
+                    Expanded(child: _buildHourlyDailyChartSection(allBooks, allSessions)),
                   ],
                 ),
                 const SizedBox(height: 24),
               ] else ...[
-                _buildDateCalendarStatsSection(hasData),
+                _buildDateCalendarStatsSection(allSessions),
                 const SizedBox(height: 24),
-                _buildMonthlyBarChartSection(pagesRead, readingTime, activeChartData),
+                _buildHourlyDailyChartSection(allBooks, allSessions),
                 const SizedBox(height: 24),
               ],
 
-          // Recent Session Logs with Timestamps
-          _buildRecentSessionLogs(hasData),
-          const SizedBox(height: 24),
+              // Recent Session Logs with Timestamps (Requirement 6)
+              _buildRecentSessionLogs(allSessions),
+              const SizedBox(height: 24),
 
-          // Genre Favorit Section
-          Text('Genre Favorit', style: AppTypography.headlineMedium),
-          const SizedBox(height: 14),
-          if (hasData)
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.n200),
-              ),
-              child: Column(
-                children: [
-                  _buildGenreRow(
-                    icon: '🌱',
-                    title: 'Self-Development',
-                    percentage: 40,
-                    color: AppColors.primaryTerracotta,
-                  ),
-                  const SizedBox(height: 14),
-                  _buildGenreRow(
-                    icon: '🧠',
-                    title: 'Psychology',
-                    percentage: 25,
-                    color: AppColors.primaryCoffee,
-                  ),
-                  const SizedBox(height: 14),
-                  _buildGenreRow(
-                    icon: '💼',
-                    title: 'Business & Productivity',
-                    percentage: 20,
-                    color: const Color(0xFFD97706),
-                  ),
-                  const SizedBox(height: 14),
-                  _buildGenreRow(
-                    icon: '🏛️',
-                    title: 'Philosophy',
-                    percentage: 15,
-                    color: const Color(0xFF059669),
-                  ),
-                ],
-              ),
-            )
-          else
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.n200),
-              ),
-              alignment: Alignment.center,
-              child: const Column(
-                children: [
-                  Icon(Icons.category_outlined, size: 36, color: AppColors.n500),
-                  SizedBox(height: 8),
-                  Text(
-                    'Belum Ada Data Genre',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.n700),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    'Genre buku favorit Anda akan muncul setelah Anda mulai membaca.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 11, color: AppColors.n500),
-                  ),
-                ],
-              ),
-            ),
-          const SizedBox(height: 24),
+              // Genre Favorit Section (Requirement 7)
+              _buildGenreSection(allBooks, allSessions, hasData),
+              const SizedBox(height: 24),
 
           // Achievement Badge Card
           Container(
@@ -633,10 +528,44 @@ class _ReadingStatsScreenState extends ConsumerState<ReadingStatsScreen> {
 );
   }
 
-  /// TAMPILAN STATISTIK BERUPA TANGGAL (Requirement 2)
-  Widget _buildDateCalendarStatsSection([bool hasData = false]) {
-    final selectedDayData = _septemberDaysData[_selectedCalendarDay] ??
-        (minutes: 0, pages: 0, book: '-', sessions: <String>[], hasSticky: false, hasNote: false);
+  /// TAMPILAN STATISTIK BERUPA TANGGAL (Requirement 4)
+  Widget _buildDateCalendarStatsSection(List<ReadingSessionWithBook> allSessions) {
+    final selectedDaySessions = allSessions.where((s) =>
+      s.session.startTime.year == _calendarMonth.year &&
+      s.session.startTime.month == _calendarMonth.month &&
+      s.session.startTime.day == _selectedCalendarDay
+    ).toList();
+
+    final selectedDayMinutes = selectedDaySessions.fold<int>(0, (sum, s) => sum + s.session.durationSeconds) ~/ 60;
+    final selectedDayPages = selectedDaySessions.fold<int>(0, (sum, s) => sum + s.session.pagesRead);
+    final selectedDayBooks = selectedDaySessions.map((s) => s.book.title).toSet().toList();
+
+    // Calculate streak from reading sessions
+    int streak = 0;
+    DateTime checkDate = DateTime.now();
+    final readToday = allSessions.any((s) =>
+      s.session.startTime.year == checkDate.year &&
+      s.session.startTime.month == checkDate.month &&
+      s.session.startTime.day == checkDate.day
+    );
+    if (!readToday) {
+      checkDate = checkDate.subtract(const Duration(days: 1));
+    }
+    while (true) {
+      final hasRead = allSessions.any((s) =>
+        s.session.startTime.year == checkDate.year &&
+        s.session.startTime.month == checkDate.month &&
+        s.session.startTime.day == checkDate.day
+      );
+      if (hasRead) {
+        streak++;
+        checkDate = checkDate.subtract(const Duration(days: 1));
+      } else {
+        break;
+      }
+    }
+
+    final monthName = DateFormatter.indonesianMonths[(_calendarMonth.month - 1).clamp(0, 11)];
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -667,30 +596,34 @@ class _ReadingStatsScreenState extends ConsumerState<ReadingStatsScreen> {
                     style: AppTypography.headlineMedium.copyWith(fontSize: 16),
                   ),
                   const SizedBox(height: 2),
-                  const Text(
-                    'September 2026 · Habit Harian',
-                    style: TextStyle(fontSize: 12, color: AppColors.n500),
+                  Text(
+                    '$monthName ${_calendarMonth.year} · Habit Harian',
+                    style: const TextStyle(fontSize: 12, color: AppColors.n500),
                   ),
                 ],
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFEF3C7),
+                  color: streak > 0 ? const Color(0xFFFEF3C7) : AppColors.n200,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFFDE68A)),
+                  border: Border.all(color: streak > 0 ? const Color(0xFFFDE68A) : Colors.transparent),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.local_fire_department_rounded, size: 14, color: Color(0xFFD97706)),
+                    Icon(
+                      Icons.local_fire_department_rounded,
+                      size: 14,
+                      color: streak > 0 ? const Color(0xFFD97706) : AppColors.n500,
+                    ),
                     const SizedBox(width: 4),
                     Text(
-                      hasData ? '14 Hari Streak' : '0 Hari Streak',
-                      style: const TextStyle(
+                      '$streak Hari Streak',
+                      style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF92400E),
+                        color: streak > 0 ? const Color(0xFF92400E) : AppColors.n700,
                       ),
                     ),
                   ],
@@ -715,8 +648,8 @@ class _ReadingStatsScreenState extends ConsumerState<ReadingStatsScreen> {
           ),
           const SizedBox(height: 8),
 
-          // Calendar Days Grid (September 2026 starts on Tuesday -> 1 empty offset on Monday)
-          _buildCalendarMatrixGrid(),
+          // Calendar Days Grid
+          _buildCalendarMatrixGrid(allSessions),
           const SizedBox(height: 14),
 
           // Heatmap Legend
@@ -755,7 +688,7 @@ class _ReadingStatsScreenState extends ConsumerState<ReadingStatsScreen> {
                         const Icon(Icons.event_available_rounded, size: 16, color: AppColors.primaryTerracotta),
                         const SizedBox(width: 6),
                         Text(
-                          'Tanggal $_selectedCalendarDay September 2026',
+                          'Tanggal $_selectedCalendarDay $monthName ${_calendarMonth.year}',
                           style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
@@ -764,7 +697,7 @@ class _ReadingStatsScreenState extends ConsumerState<ReadingStatsScreen> {
                         ),
                       ],
                     ),
-                    if (selectedDayData.minutes > 0)
+                    if (selectedDayMinutes > 0)
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
@@ -772,7 +705,7 @@ class _ReadingStatsScreenState extends ConsumerState<ReadingStatsScreen> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          '${selectedDayData.minutes} Menit · ${selectedDayData.pages} Hal',
+                          '$selectedDayMinutes Menit · $selectedDayPages Hal',
                           style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
@@ -796,14 +729,18 @@ class _ReadingStatsScreenState extends ConsumerState<ReadingStatsScreen> {
                 ),
                 const SizedBox(height: 8),
 
-                if (selectedDayData.minutes > 0) ...[
+                if (selectedDayMinutes > 0) ...[
                   Row(
                     children: [
                       const Icon(Icons.auto_stories, size: 14, color: AppColors.n500),
                       const SizedBox(width: 6),
-                      Text(
-                        'Buku: ${selectedDayData.book}',
-                        style: const TextStyle(fontSize: 12, color: AppColors.n700),
+                      Expanded(
+                        child: Text(
+                          'Buku: ${selectedDayBooks.join(', ')}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 12, color: AppColors.n700),
+                        ),
                       ),
                     ],
                   ),
@@ -812,49 +749,19 @@ class _ReadingStatsScreenState extends ConsumerState<ReadingStatsScreen> {
                     children: [
                       const Icon(Icons.schedule, size: 14, color: AppColors.n500),
                       const SizedBox(width: 6),
-                      Text(
-                        'Sesi: ${selectedDayData.sessions.join(' & ')}',
-                        style: const TextStyle(fontSize: 12, color: AppColors.n700),
+                      Expanded(
+                        child: Text(
+                          'Sesi: ${selectedDaySessions.map((s) => '${DateFormatter.formatTimeOnly(s.session.startTime)} (${s.session.pagesRead} hal)').join(', ')}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 12, color: AppColors.n700),
+                        ),
                       ),
                     ],
                   ),
-                  if (selectedDayData.hasSticky || selectedDayData.hasNote) ...[
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        if (selectedDayData.hasSticky)
-                          Container(
-                            margin: const EdgeInsets.only(right: 6),
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFEF9C3),
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: const Color(0xFFFDE047)),
-                            ),
-                            child: const Text(
-                              '📌 Ada Sticky Note',
-                              style: TextStyle(fontSize: 10, color: Color(0xFF713F12), fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        if (selectedDayData.hasNote)
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFECFDF5),
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: const Color(0xFFA7F3D0)),
-                            ),
-                            child: const Text(
-                              '✍️ Ada Refleksi',
-                              style: TextStyle(fontSize: 10, color: Color(0xFF065F46), fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ],
                 ] else ...[
                   const Text(
-                    'Tidak ada sesi membaca pada tanggal ini. Ketuk tanggal lain untuk melihat riwayat aktivitas.',
+                    'Tidak ada sesi membaca pada tanggal ini. Ketuk tanggal lain atau tekan tombol Start di reader untuk mencatat waktu baca.',
                     style: TextStyle(fontSize: 11.5, color: AppColors.n500),
                   ),
                 ],
@@ -885,18 +792,28 @@ class _ReadingStatsScreenState extends ConsumerState<ReadingStatsScreen> {
     );
   }
 
-  Widget _buildCalendarMatrixGrid() {
-    // September 1, 2026 is Tuesday. Monday is offset 1.
+  Widget _buildCalendarMatrixGrid(List<ReadingSessionWithBook> allSessions) {
+    final firstDay = DateTime(_calendarMonth.year, _calendarMonth.month, 1);
+    final offset = (firstDay.weekday - 1) % 7;
+    final totalDays = DateTime(_calendarMonth.year, _calendarMonth.month + 1, 0).day;
+    final now = DateTime.now();
+
     final List<Widget> dayWidgets = [];
 
-    // Empty cell for Monday Aug 31
-    dayWidgets.add(const SizedBox(width: 38, height: 38));
+    for (int i = 0; i < offset; i++) {
+      dayWidgets.add(const SizedBox(width: 38, height: 38));
+    }
 
-    for (int day = 1; day <= 30; day++) {
-      final data = _septemberDaysData[day];
-      final minutes = data?.minutes ?? 0;
+    for (int day = 1; day <= totalDays; day++) {
+      final daySessions = allSessions.where((s) =>
+        s.session.startTime.year == _calendarMonth.year &&
+        s.session.startTime.month == _calendarMonth.month &&
+        s.session.startTime.day == day
+      ).toList();
+
+      final minutes = daySessions.fold<int>(0, (sum, s) => sum + s.session.durationSeconds) ~/ 60;
       final isSelected = _selectedCalendarDay == day;
-      final isToday = day == 27 || day == 28;
+      final isToday = now.year == _calendarMonth.year && now.month == _calendarMonth.month && now.day == day;
 
       Color cellBg;
       Color textColor;
@@ -917,7 +834,10 @@ class _ReadingStatsScreenState extends ConsumerState<ReadingStatsScreen> {
       dayWidgets.add(
         GestureDetector(
           onTap: () {
-            setState(() => _selectedCalendarDay = day);
+            setState(() {
+              _selectedCalendarDay = day;
+              _chartSelectedDate = DateTime(_calendarMonth.year, _calendarMonth.month, day);
+            });
           },
           child: Container(
             width: 38,
@@ -942,33 +862,13 @@ class _ReadingStatsScreenState extends ConsumerState<ReadingStatsScreen> {
                     ]
                   : null,
             ),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Text(
-                  '$day',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: isSelected || isToday || minutes > 0
-                        ? FontWeight.bold
-                        : FontWeight.normal,
-                    color: textColor,
-                  ),
-                ),
-                if (data?.hasSticky == true)
-                  Positioned(
-                    top: 2,
-                    right: 4,
-                    child: Container(
-                      width: 5,
-                      height: 5,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFFACC15),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ),
-              ],
+            child: Text(
+              '$day',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: isSelected || isToday || minutes > 0 ? FontWeight.bold : FontWeight.normal,
+                color: textColor,
+              ),
             ),
           ),
         ),
@@ -985,99 +885,327 @@ class _ReadingStatsScreenState extends ConsumerState<ReadingStatsScreen> {
     );
   }
 
-  /// Section Bar Chart Bulanan
-  Widget _buildMonthlyBarChartSection(
-    String pagesRead,
-    String readingTime,
-    List<({String label, int pages, double heightRatio})> activeChartData,
+  /// GRAFIK HALAMAN BACA HARIAN (Requirement 5)
+  Widget _buildHourlyDailyChartSection(
+    List<BookEntry> allBooks,
+    List<ReadingSessionWithBook> allSessions,
   ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('Grafik Halaman Dibaca', style: AppTypography.headlineMedium),
-            Text(
-              '$pagesRead hal ($readingTime)',
-              style: AppTypography.labelSmall.copyWith(color: AppColors.n500),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.n200),
+    // Filter sessions by selected date and selected book
+    final daySessions = allSessions.where((s) {
+      final dateMatches = s.session.startTime.year == _chartSelectedDate.year &&
+          s.session.startTime.month == _chartSelectedDate.month &&
+          s.session.startTime.day == _chartSelectedDate.day;
+      if (!dateMatches) return false;
+      if (_selectedChartBookId != 'all') {
+        return s.session.bookId == _selectedChartBookId;
+      }
+      return true;
+    }).toList();
+
+    // 8 time intervals of 3 hours: 00:00, 03:00, 06:00, 09:00, 12:00, 15:00, 18:00, 21:00
+    const List<({String label, int startHour, int endHour})> hourlySlots = [
+      (label: '00:00', startHour: 0, endHour: 3),
+      (label: '03:00', startHour: 3, endHour: 6),
+      (label: '06:00', startHour: 6, endHour: 9),
+      (label: '09:00', startHour: 9, endHour: 12),
+      (label: '12:00', startHour: 12, endHour: 15),
+      (label: '15:00', startHour: 15, endHour: 18),
+      (label: '18:00', startHour: 18, endHour: 21),
+      (label: '21:00', startHour: 21, endHour: 24),
+    ];
+
+    final slotData = hourlySlots.map((slot) {
+      final pagesInSlot = daySessions
+          .where((s) => s.session.startTime.hour >= slot.startHour && s.session.startTime.hour < slot.endHour)
+          .fold<int>(0, (sum, s) => sum + s.session.pagesRead);
+      return (label: slot.label, startHour: slot.startHour, endHour: slot.endHour, pages: pagesInSlot);
+    }).toList();
+
+    final totalDayPages = slotData.fold<int>(0, (sum, s) => sum + s.pages);
+    final maxPagesInSlot = slotData.fold<int>(0, (maxVal, s) => s.pages > maxVal ? s.pages : maxVal);
+
+    final dateDisplay = DateFormatter.formatShortDate(_chartSelectedDate);
+    final isToday = DateTime.now().year == _chartSelectedDate.year &&
+        DateTime.now().month == _chartSelectedDate.month &&
+        DateTime.now().day == _chartSelectedDate.day;
+    final dateLabel = isToday ? 'Hari Ini ($dateDisplay)' : dateDisplay;
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE8DFD1), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryCoffee.withOpacity(0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header Card Title (Requirement 5)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              if (activeChartData.isEmpty || pagesRead == '0')
-                Container(
-                  height: 140,
-                  alignment: Alignment.center,
-                  child: const Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.bar_chart_outlined, size: 40, color: AppColors.n500),
-                      SizedBox(height: 8),
-                      Text(
-                        'Belum ada data grafik membaca',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.n700),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        'Grafik akan terisi otomatis saat Anda mulai membaca buku.',
-                        style: TextStyle(fontSize: 11, color: AppColors.n500),
-                      ),
-                    ],
-                  ),
-                )
-              else
-                SizedBox(
-                  height: 140,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: activeChartData.map((data) {
-                      return Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 2.0),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Tooltip(
-                                message: '${data.pages} halaman',
-                                child: Container(
-                                  height: (100 * data.heightRatio).clamp(8.0, 110.0),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.primaryTerracotta,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                data.label,
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  color: AppColors.n500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }).toList(),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Grafik Halaman Baca Harian',
+                      style: AppTypography.headlineMedium.copyWith(fontSize: 16),
+                    ),
+                    const SizedBox(height: 2),
+                    const Text(
+                      'Distribusi halaman dibaca berdasarkan jam',
+                      style: TextStyle(fontSize: 12, color: AppColors.n500),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: totalDayPages > 0 ? const Color(0xFFFEF3C7) : AppColors.n200,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '$totalDayPages Hal Dibaca',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: totalDayPages > 0 ? const Color(0xFF92400E) : AppColors.n700,
                   ),
                 ),
+              ),
             ],
           ),
-        ),
-      ],
+          const SizedBox(height: 14),
+
+          // Dropdown Pulldown Pilihan Judul Buku (Requirement 5)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFAF7F2),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE8DFD1)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.book_outlined, size: 16, color: AppColors.primaryCoffee),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: _selectedChartBookId,
+                      isExpanded: true,
+                      icon: const Icon(Icons.keyboard_arrow_down, size: 20, color: AppColors.primaryCoffee),
+                      items: [
+                        DropdownMenuItem<String>(
+                          value: 'all',
+                          child: Text(
+                            'Semua Buku (${allBooks.length})',
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.primaryCoffee),
+                          ),
+                        ),
+                        ...allBooks.map((b) => DropdownMenuItem<String>(
+                          value: b.id,
+                          child: Text(
+                            b.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 13, color: AppColors.n900),
+                          ),
+                        )),
+                      ],
+                      onChanged: (val) {
+                        if (val != null) {
+                          setState(() => _selectedChartBookId = val);
+                        }
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Date Selector Berkolerasi (Requirement 5)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.chevron_left, size: 22, color: AppColors.primaryCoffee),
+                tooltip: 'Hari Sebelumnya',
+                onPressed: () {
+                  setState(() {
+                    _chartSelectedDate = _chartSelectedDate.subtract(const Duration(days: 1));
+                    _selectedCalendarDay = _chartSelectedDate.day;
+                    _calendarMonth = DateTime(_chartSelectedDate.year, _chartSelectedDate.month);
+                  });
+                },
+              ),
+              InkWell(
+                onTap: () async {
+                  final picked = await showDatePicker(
+                    context: context,
+                    initialDate: _chartSelectedDate,
+                    firstDate: DateTime(2020),
+                    lastDate: DateTime(2030),
+                  );
+                  if (picked != null) {
+                    setState(() {
+                      _chartSelectedDate = picked;
+                      _selectedCalendarDay = picked.day;
+                      _calendarMonth = DateTime(picked.year, picked.month);
+                    });
+                  }
+                },
+                borderRadius: BorderRadius.circular(10),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF7ED),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFFED7AA)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.primaryTerracotta),
+                      const SizedBox(width: 6),
+                      Text(
+                        dateLabel,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primaryCoffee,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.arrow_drop_down, size: 16, color: AppColors.primaryCoffee),
+                    ],
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.chevron_right, size: 22, color: AppColors.primaryCoffee),
+                tooltip: 'Hari Berikutnya',
+                onPressed: () {
+                  setState(() {
+                    _chartSelectedDate = _chartSelectedDate.add(const Duration(days: 1));
+                    _selectedCalendarDay = _chartSelectedDate.day;
+                    _calendarMonth = DateTime(_chartSelectedDate.year, _chartSelectedDate.month);
+                  });
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Area Grafik
+          if (totalDayPages == 0)
+            Container(
+              height: 160,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFAF7F2),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFF0EAE1)),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.bar_chart_outlined, size: 36, color: AppColors.n500),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Tidak ada aktivitas membaca pada $dateDisplay',
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.n700),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Buka buku di perpustakaan lalu tekan tombol Start untuk mencatat statistik.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 11, color: AppColors.n500),
+                  ),
+                ],
+              ),
+            )
+          else ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Y-Axis: Jumlah Halaman (Maks: $maxPagesInSlot hal)',
+                  style: const TextStyle(fontSize: 10.5, color: AppColors.n500),
+                ),
+                const Text(
+                  'X-Axis: Jam WIB',
+                  style: TextStyle(fontSize: 10.5, color: AppColors.n500),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              height: 150,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: slotData.map((data) {
+                  final heightRatio = maxPagesInSlot > 0 ? (data.pages / maxPagesInSlot) : 0.0;
+                  final barHeight = (100 * heightRatio).clamp(data.pages > 0 ? 12.0 : 4.0, 100.0);
+
+                  return Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 3.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          if (data.pages > 0)
+                            Text(
+                              '${data.pages}',
+                              style: const TextStyle(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primaryTerracotta,
+                              ),
+                            )
+                          else
+                            const SizedBox(height: 12),
+                          const SizedBox(height: 2),
+                          Tooltip(
+                            message: '${data.label} WIB: ${data.pages} halaman dibaca',
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              height: barHeight,
+                              decoration: BoxDecoration(
+                                color: data.pages > 0 ? AppColors.primaryTerracotta : const Color(0xFFE5E5E0),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            data.label,
+                            style: TextStyle(
+                              fontSize: 9.5,
+                              color: data.pages > 0 ? AppColors.n900 : AppColors.n500,
+                              fontWeight: data.pages > 0 ? FontWeight.bold : FontWeight.normal,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 
@@ -1211,33 +1339,86 @@ class _ReadingStatsScreenState extends ConsumerState<ReadingStatsScreen> {
     );
   }
 
-  Widget _buildActiveReadingHoursSection([bool hasData = false]) {
-    if (!hasData) {
+  Widget _buildActiveReadingHoursSection(List<ReadingSessionWithBook> sessions) {
+    if (sessions.isEmpty) {
       return Container(
-        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: AppColors.n200),
         ),
-        alignment: Alignment.center,
-        child: const Column(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.nightlight_round, size: 32, color: AppColors.n500),
-            SizedBox(height: 8),
-            Text(
-              'Belum Ada Jam Baca Aktif',
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.n700),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEDE9FE),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.nightlight_round, size: 16, color: Color(0xFF7C3AED)),
+                    ),
+                    const SizedBox(width: 8),
+                    Text('Jam Baca Paling Aktif', style: AppTypography.titleMedium),
+                  ],
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppColors.n200,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text(
+                    '0% Sesi Aktif',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.n700),
+                  ),
+                ),
+              ],
             ),
-            SizedBox(height: 4),
-            Text(
-              'Waktu membaca favorit Anda akan dianalisis secara otomatis di sini.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 11, color: AppColors.n500),
+            const SizedBox(height: 14),
+            const Text(
+              'Distribusi Waktu Berdasarkan Jam dalam Sehari:',
+              style: TextStyle(fontSize: 12, color: AppColors.n500),
             ),
+            const SizedBox(height: 10),
+            _buildTimeSlotRow('Pagi Hari (06:00 - 12:00 WIB)', 0.0, '0%'),
+            const SizedBox(height: 8),
+            _buildTimeSlotRow('Siang & Sore (12:00 - 18:00 WIB)', 0.0, '0%'),
+            const SizedBox(height: 8),
+            _buildTimeSlotRow('Malam Hari (18:00 - 24:00 WIB)', 0.0, '0%'),
+            const SizedBox(height: 8),
+            _buildTimeSlotRow('Dini Hari (00:00 - 06:00 WIB)', 0.0, '0%'),
           ],
         ),
       );
+    }
+
+    final morningCount = sessions.where((s) => s.session.startTime.hour >= 6 && s.session.startTime.hour < 12).length;
+    final afternoonCount = sessions.where((s) => s.session.startTime.hour >= 12 && s.session.startTime.hour < 18).length;
+    final eveningCount = sessions.where((s) => s.session.startTime.hour >= 18 && s.session.startTime.hour < 24).length;
+    final nightCount = sessions.where((s) => s.session.startTime.hour >= 0 && s.session.startTime.hour < 6).length;
+
+    final total = sessions.length;
+    final morningPct = ((morningCount / total) * 100).round();
+    final afternoonPct = ((afternoonCount / total) * 100).round();
+    final eveningPct = ((eveningCount / total) * 100).round();
+    final nightPct = ((nightCount / total) * 100).round();
+
+    String favoriteBadge = 'Malam Hari';
+    if (morningCount >= afternoonCount && morningCount >= eveningCount && morningCount >= nightCount) {
+      favoriteBadge = 'Pagi ($morningPct%)';
+    } else if (afternoonCount >= morningCount && afternoonCount >= eveningCount && afternoonCount >= nightCount) {
+      favoriteBadge = 'Siang ($afternoonPct%)';
+    } else if (eveningCount >= morningCount && eveningCount >= afternoonCount && eveningCount >= nightCount) {
+      favoriteBadge = 'Malam ($eveningPct%)';
+    } else {
+      favoriteBadge = 'Dini Hari ($nightPct%)';
     }
 
     return Container(
@@ -1273,9 +1454,9 @@ class _ReadingStatsScreenState extends ConsumerState<ReadingStatsScreen> {
                   color: AppColors.primaryTerracotta.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Text(
-                  '20:00 - 21:30 WIB',
-                  style: TextStyle(
+                child: Text(
+                  favoriteBadge,
+                  style: const TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                     color: AppColors.primaryTerracotta,
@@ -1290,11 +1471,13 @@ class _ReadingStatsScreenState extends ConsumerState<ReadingStatsScreen> {
             style: TextStyle(fontSize: 12, color: AppColors.n500),
           ),
           const SizedBox(height: 10),
-          _buildTimeSlotRow('Pagi Hari (06:00 - 12:00 WIB)', 0.15, '15%'),
+          _buildTimeSlotRow('Pagi Hari (06:00 - 12:00 WIB)', morningCount / total, '$morningPct%'),
           const SizedBox(height: 8),
-          _buildTimeSlotRow('Siang & Sore (12:00 - 18:00 WIB)', 0.23, '23%'),
+          _buildTimeSlotRow('Siang & Sore (12:00 - 18:00 WIB)', afternoonCount / total, '$afternoonPct%'),
           const SizedBox(height: 8),
-          _buildTimeSlotRow('Malam Hari (18:00 - 24:00 WIB)', 0.62, '62% (Favorit)'),
+          _buildTimeSlotRow('Malam Hari (18:00 - 24:00 WIB)', eveningCount / total, '$eveningPct%'),
+          const SizedBox(height: 8),
+          _buildTimeSlotRow('Dini Hari (00:00 - 06:00 WIB)', nightCount / total, '$nightPct%'),
         ],
       ),
     );
@@ -1330,8 +1513,9 @@ class _ReadingStatsScreenState extends ConsumerState<ReadingStatsScreen> {
     );
   }
 
-  Widget _buildRecentSessionLogs([bool hasData = false]) {
-    if (!hasData) {
+  /// RIWAYAT SESI MEMBACA (Requirement 6)
+  Widget _buildRecentSessionLogs(List<ReadingSessionWithBook> sessions) {
+    if (sessions.isEmpty) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1340,7 +1524,7 @@ class _ReadingStatsScreenState extends ConsumerState<ReadingStatsScreen> {
             children: [
               Text('Riwayat Sesi Membaca', style: AppTypography.headlineMedium),
               Text(
-                'Berdasarkan Waktu',
+                '0 Sesi',
                 style: AppTypography.labelSmall.copyWith(color: AppColors.n500),
               ),
             ],
@@ -1359,12 +1543,12 @@ class _ReadingStatsScreenState extends ConsumerState<ReadingStatsScreen> {
                 Icon(Icons.history_toggle_off, size: 36, color: AppColors.n500),
                 SizedBox(height: 8),
                 Text(
-                  'Belum Ada Riwayat Sesi',
+                  'Belum Ada Riwayat Sesi (0)',
                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.n700),
                 ),
                 SizedBox(height: 4),
                 Text(
-                  'Sesi membaca beserta durasi dan halaman akan tercatat di sini.',
+                  'Sesi membaca beserta durasi dan halaman akan tercatat di sini setelah Anda mulai membaca buku.',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 11, color: AppColors.n500),
                 ),
@@ -1375,6 +1559,8 @@ class _ReadingStatsScreenState extends ConsumerState<ReadingStatsScreen> {
       );
     }
 
+    final displayedSessions = _showAllSessions ? sessions : sessions.take(3).toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1383,7 +1569,7 @@ class _ReadingStatsScreenState extends ConsumerState<ReadingStatsScreen> {
           children: [
             Text('Riwayat Sesi Membaca', style: AppTypography.headlineMedium),
             Text(
-              'Berdasarkan Waktu',
+              '${sessions.length} Sesi',
               style: AppTypography.labelSmall.copyWith(color: AppColors.n500),
             ),
           ],
@@ -1397,34 +1583,176 @@ class _ReadingStatsScreenState extends ConsumerState<ReadingStatsScreen> {
           ),
           child: Column(
             children: [
-              _buildSessionRow(
-                bookTitle: 'Atomic Habits',
-                dateStr: 'Hari Ini, 27 Sep 2026',
-                timeRangeStr: '20:15 - 20:45 WIB',
-                durationStr: '30 menit',
-                pagesStr: '24 hal',
-              ),
-              const Divider(height: 1, indent: 56),
-              _buildSessionRow(
-                bookTitle: 'The Daily Stoic',
-                dateStr: 'Kemarin, 26 Sep 2026',
-                timeRangeStr: '14:00 - 14:45 WIB',
-                durationStr: '45 menit',
-                pagesStr: '32 hal',
-              ),
-              const Divider(height: 1, indent: 56),
-              _buildSessionRow(
-                bookTitle: 'Deep Work',
-                dateStr: 'Jumat, 25 Sep 2026',
-                timeRangeStr: '06:30 - 07:15 WIB',
-                durationStr: '45 menit',
-                pagesStr: '18 hal',
-              ),
+              for (int i = 0; i < displayedSessions.length; i++) ...[
+                if (i > 0) const Divider(height: 1, indent: 56),
+                _buildSessionRow(
+                  bookTitle: displayedSessions[i].book.title,
+                  dateStr: DateFormatter.formatShortDate(displayedSessions[i].session.startTime),
+                  timeRangeStr:
+                      '${DateFormatter.formatTimeOnly(displayedSessions[i].session.startTime)} - ${DateFormatter.formatTimeOnly(displayedSessions[i].session.endTime)}',
+                  durationStr: displayedSessions[i].session.durationSeconds >= 60
+                      ? '${displayedSessions[i].session.durationSeconds ~/ 60} menit'
+                      : '${displayedSessions[i].session.durationSeconds} detik',
+                  pagesStr: '${displayedSessions[i].session.pagesRead} hal (Hal ${displayedSessions[i].session.startPage} - ${displayedSessions[i].session.endPage})',
+                ),
+              ],
+              if (sessions.length > 3) ...[
+                const Divider(height: 1),
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      _showAllSessions = !_showAllSessions;
+                    });
+                  },
+                  borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          _showAllSessions
+                              ? 'Tampilkan Lebih Sedikit'
+                              : 'Lihat Selengkapnya (${sessions.length} Sesi)',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primaryTerracotta,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(
+                          _showAllSessions ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                          size: 18,
+                          color: AppColors.primaryTerracotta,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
       ],
     );
+  }
+
+  /// GENRE FAVORIT SECTION (Requirement 7)
+  Widget _buildGenreSection(
+    List<BookEntry> allBooks,
+    List<ReadingSessionWithBook> allSessions,
+    bool hasData,
+  ) {
+    // Collect weights (duration or count) per genre
+    final Map<String, int> genreWeights = {};
+
+    if (allSessions.isNotEmpty) {
+      for (final s in allSessions) {
+        final g = s.book.genre.trim().isNotEmpty ? s.book.genre.trim() : 'Umum';
+        final duration = s.session.durationSeconds > 0 ? s.session.durationSeconds : 60;
+        genreWeights[g] = (genreWeights[g] ?? 0) + duration;
+      }
+    } else if (allBooks.isNotEmpty) {
+      for (final b in allBooks) {
+        final g = b.genre.trim().isNotEmpty ? b.genre.trim() : 'Umum';
+        genreWeights[g] = (genreWeights[g] ?? 0) + 1;
+      }
+    }
+
+    final hasGenreData = genreWeights.isNotEmpty;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Genre Favorit', style: AppTypography.headlineMedium),
+        const SizedBox(height: 14),
+        if (!hasGenreData)
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.n200),
+            ),
+            alignment: Alignment.center,
+            child: const Column(
+              children: [
+                Icon(Icons.category_outlined, size: 36, color: AppColors.n500),
+                SizedBox(height: 8),
+                Text(
+                  'Belum Ada Data Genre (0%)',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.n700),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'Genre buku favorit Anda akan muncul setelah Anda mulai membaca buku.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 11, color: AppColors.n500),
+                ),
+              ],
+            ),
+          )
+        else
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.n200),
+            ),
+            child: Builder(
+              builder: (context) {
+                final totalWeight = genreWeights.values.fold<int>(0, (a, b) => a + b);
+                final sortedGenres = genreWeights.keys.toList()
+                  ..sort((a, b) => (genreWeights[b] ?? 0).compareTo(genreWeights[a] ?? 0));
+
+                return Column(
+                  children: [
+                    for (int i = 0; i < sortedGenres.length; i++) ...[
+                      if (i > 0) const SizedBox(height: 14),
+                      () {
+                        final genreName = sortedGenres[i];
+                        final weight = genreWeights[genreName] ?? 0;
+                        final percentage = totalWeight > 0 ? ((weight / totalWeight) * 100).round() : 0;
+                        final style = _getGenreStyle(genreName);
+                        return _buildGenreRow(
+                          icon: style.icon,
+                          title: genreName,
+                          percentage: percentage > 0 ? percentage : 1,
+                          color: style.color,
+                        );
+                      }(),
+                    ],
+                  ],
+                );
+              },
+            ),
+          ),
+      ],
+    );
+  }
+
+  ({String icon, Color color}) _getGenreStyle(String genre) {
+    final lower = genre.toLowerCase();
+    if (lower.contains('self') || lower.contains('diri')) {
+      return (icon: '🌱', color: AppColors.primaryTerracotta);
+    } else if (lower.contains('psycho') || lower.contains('psikologi')) {
+      return (icon: '🧠', color: AppColors.primaryCoffee);
+    } else if (lower.contains('busin') || lower.contains('bisnis') || lower.contains('productiv') || lower.contains('kerja')) {
+      return (icon: '💼', color: const Color(0xFFD97706));
+    } else if (lower.contains('philo') || lower.contains('filsafat') || lower.contains('stoic')) {
+      return (icon: '🏛️', color: const Color(0xFF059669));
+    } else if (lower.contains('hist') || lower.contains('sejarah') || lower.contains('scien') || lower.contains('sains')) {
+      return (icon: '🔬', color: const Color(0xFF2563EB));
+    } else if (lower.contains('fict') || lower.contains('fiksi') || lower.contains('novel') || lower.contains('sastra')) {
+      return (icon: '📚', color: const Color(0xFF7C3AED));
+    } else if (lower.contains('bio')) {
+      return (icon: '👤', color: const Color(0xFFDB2777));
+    } else if (lower.contains('tech') || lower.contains('tekno')) {
+      return (icon: '💻', color: const Color(0xFF0284C7));
+    }
+    return (icon: '📖', color: AppColors.primaryCoffee);
   }
 
   Widget _buildSessionRow({

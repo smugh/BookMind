@@ -24,11 +24,18 @@ class BookDetailSheet extends ConsumerStatefulWidget {
 
 class _BookDetailSheetState extends ConsumerState<BookDetailSheet> {
   bool _isDescriptionExpanded = false;
+  late BookEntry _book;
+
+  @override
+  void initState() {
+    super.initState();
+    _book = widget.book;
+  }
 
   @override
   Widget build(BuildContext context) {
     final db = ref.watch(appDatabaseProvider);
-    final book = widget.book;
+    final book = _book;
 
     // Derived category tags based on title/category
     final tags = _getTagsForBook(book.title);
@@ -67,11 +74,23 @@ class _BookDetailSheetState extends ConsumerState<BookDetailSheet> {
                 PopupMenuButton<String>(
                   icon: const Icon(Icons.more_horiz),
                   onSelected: (val) {
-                    if (val == 'delete') {
+                    if (val == 'edit') {
+                      _showEditBookDialog(context, ref);
+                    } else if (val == 'delete') {
                       _confirmDelete(context, ref);
                     }
                   },
                   itemBuilder: (ctx) => [
+                    const PopupMenuItem(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          Icon(Icons.edit_outlined, size: 18, color: AppColors.primaryCoffee),
+                          SizedBox(width: 8),
+                          Text('Edit Informasi', style: TextStyle(color: AppColors.n900)),
+                        ],
+                      ),
+                    ),
                     const PopupMenuItem(
                       value: 'delete',
                       child: Row(
@@ -112,29 +131,47 @@ class _BookDetailSheetState extends ConsumerState<BookDetailSheet> {
             ),
             const SizedBox(height: 12),
 
-            // Category Tags
+            // Category Tags (with dynamic Genre)
             Wrap(
               spacing: 8,
               runSpacing: 6,
               alignment: WrapAlignment.center,
-              children: tags.map((tag) {
-                return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.primaryTerracotta.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.n300),
+                    border: Border.all(color: AppColors.primaryTerracotta.withOpacity(0.4)),
                   ),
                   child: Text(
-                    tag,
+                    '🏷️ ${book.genre}',
                     style: const TextStyle(
                       fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.n700,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primaryTerracotta,
                     ),
                   ),
-                );
-              }).toList(),
+                ),
+                ...tags.where((t) => t.toLowerCase() != book.genre.toLowerCase()).map((tag) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.n300),
+                    ),
+                    child: Text(
+                      tag,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.n700,
+                      ),
+                    ),
+                  );
+                }),
+              ],
             ),
             const SizedBox(height: 20),
 
@@ -352,13 +389,206 @@ class _BookDetailSheetState extends ConsumerState<BookDetailSheet> {
     return 'Buku ini mengajak pembaca merenungkan pola pikir dan kebiasaan sehari-hari untuk mengembangkan potensi diri dan menjalani hidup dengan lebih bermakna.';
   }
 
+  void _showEditBookDialog(BuildContext context, WidgetRef ref) {
+    final titleController = TextEditingController(text: _book.title);
+    final authorController = TextEditingController(text: _book.author);
+    String selectedGenre = _book.genre.trim().isNotEmpty ? _book.genre.trim() : 'Self-Development';
+
+    final presetGenres = [
+      'Self-Development',
+      'Psychology',
+      'Business & Productivity',
+      'Philosophy',
+      'History & Science',
+      'Fiction & Literature',
+      'Biography',
+      'Technology',
+      'Umum',
+    ];
+
+    if (!presetGenres.contains(selectedGenre)) {
+      presetGenres.insert(0, selectedGenre);
+    }
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryCream,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.edit, color: AppColors.primaryCoffee, size: 20),
+              ),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text(
+                  'Edit Informasi Buku',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primaryCoffee,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Judul Buku',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.n700),
+                ),
+                const SizedBox(height: 6),
+                TextField(
+                  controller: titleController,
+                  style: const TextStyle(fontSize: 14, color: AppColors.n900),
+                  decoration: InputDecoration(
+                    hintText: 'Masukkan judul buku...',
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFFE5DCD0)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: AppColors.primaryCoffee, width: 1.5),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                const Text(
+                  'Penulis / Author',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.n700),
+                ),
+                const SizedBox(height: 6),
+                TextField(
+                  controller: authorController,
+                  style: const TextStyle(fontSize: 14, color: AppColors.n900),
+                  decoration: InputDecoration(
+                    hintText: 'Nama penulis...',
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFFE5DCD0)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: AppColors.primaryCoffee, width: 1.5),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                const Text(
+                  'Genre Buku',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.n700),
+                ),
+                const SizedBox(height: 3),
+                const Text(
+                  'Genre ini akan tampil pada statistik "Genre Favorit".',
+                  style: TextStyle(fontSize: 11, color: AppColors.n500),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFE5DCD0)),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      isExpanded: true,
+                      value: selectedGenre,
+                      items: presetGenres.map((g) {
+                        return DropdownMenuItem(
+                          value: g,
+                          child: Text(g, style: const TextStyle(fontSize: 14, color: AppColors.n900)),
+                        );
+                      }).toList(),
+                      onChanged: (val) {
+                        if (val != null) {
+                          setDialogState(() => selectedGenre = val);
+                        }
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Batal', style: TextStyle(color: AppColors.n700)),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final scaffoldMessenger = ScaffoldMessenger.of(context);
+                final dialogNav = Navigator.of(ctx);
+                final newTitle = titleController.text.trim();
+                final newAuthor = authorController.text.trim();
+                if (newTitle.isEmpty) {
+                  scaffoldMessenger.showSnackBar(
+                    const SnackBar(content: Text('Judul buku tidak boleh kosong')),
+                  );
+                  return;
+                }
+
+                await ref.read(appDatabaseProvider).updateBookInfo(
+                      id: _book.id,
+                      title: newTitle,
+                      author: newAuthor.isNotEmpty ? newAuthor : 'Penulis Tidak Diketahui',
+                      genre: selectedGenre,
+                    );
+
+                if (mounted) {
+                  setState(() {
+                    _book = _book.copyWith(
+                      title: newTitle,
+                      author: newAuthor.isNotEmpty ? newAuthor : 'Penulis Tidak Diketahui',
+                      genre: selectedGenre,
+                    );
+                  });
+                  dialogNav.pop();
+                  scaffoldMessenger.showSnackBar(
+                    SnackBar(
+                      content: Text('Informasi buku "$newTitle" berhasil diperbarui'),
+                      backgroundColor: AppColors.primaryCoffee,
+                    ),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryCoffee,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+              ),
+              child: const Text('Simpan'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _confirmDelete(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Hapus Buku?'),
         content: Text(
-          'Buku "${widget.book.title}" beserta catatan dan highlight terkait akan dihapus secara permanen.',
+          'Buku "${_book.title}" beserta catatan dan highlight terkait akan dihapus secara permanen.',
         ),
         actions: [
           TextButton(
@@ -369,7 +599,7 @@ class _BookDetailSheetState extends ConsumerState<BookDetailSheet> {
             onPressed: () async {
               Navigator.pop(ctx);
               Navigator.pop(context);
-              await ref.read(libraryServiceProvider).deleteBook(widget.book);
+              await ref.read(libraryServiceProvider).deleteBook(_book);
             },
             child: const Text('Hapus', style: TextStyle(color: AppColors.error)),
           ),

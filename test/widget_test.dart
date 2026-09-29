@@ -14,6 +14,7 @@ void main() {
       fileType: 'pdf',
       totalPages: 320,
       lastReadPage: 1,
+      genre: 'Self-Development',
       createdAt: DateTime.now(),
     );
 

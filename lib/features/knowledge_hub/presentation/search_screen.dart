@@ -29,6 +29,7 @@ class _GlobalSearchScreenState extends ConsumerState<GlobalSearchScreen> {
       fileType: 'pdf',
       totalPages: 499,
       lastReadPage: 1,
+      genre: 'Psychology',
       createdAt: DateTime(2024, 1, 1),
     ),
     BookEntry(
@@ -39,6 +40,7 @@ class _GlobalSearchScreenState extends ConsumerState<GlobalSearchScreen> {
       fileType: 'pdf',
       totalPages: 304,
       lastReadPage: 1,
+      genre: 'Psychology',
       createdAt: DateTime(2024, 1, 1),
     ),
     BookEntry(
@@ -49,6 +51,7 @@ class _GlobalSearchScreenState extends ConsumerState<GlobalSearchScreen> {
       fileType: 'epub',
       totalPages: 256,
       lastReadPage: 1,
+      genre: 'Business & Productivity',
       createdAt: DateTime(2024, 1, 1),
     ),
   ];

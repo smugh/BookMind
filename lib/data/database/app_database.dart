@@ -15,6 +15,7 @@ class Books extends Table {
   IntColumn get totalPages => integer().withDefault(const Constant(0))();
   IntColumn get lastReadPage => integer().withDefault(const Constant(1))();
   DateTimeColumn get lastReadAt => dateTime().nullable()();
+  TextColumn get genre => text().withDefault(const Constant('Self-Development'))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 
   @override
@@ -75,6 +76,22 @@ class Bookmarks extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+@DataClassName('ReadingSessionEntry')
+class ReadingSessions extends Table {
+  TextColumn get id => text()();
+  TextColumn get bookId => text().references(Books, #id, onDelete: KeyAction.cascade)();
+  DateTimeColumn get startTime => dateTime()();
+  DateTimeColumn get endTime => dateTime()();
+  IntColumn get durationSeconds => integer()();
+  IntColumn get startPage => integer().withDefault(const Constant(1))();
+  IntColumn get endPage => integer().withDefault(const Constant(1))();
+  IntColumn get pagesRead => integer().withDefault(const Constant(0))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 // Composite model for Knowledge Hub
 class NoteWithDetails {
   final NoteEntry note;
@@ -90,20 +107,39 @@ class NoteWithDetails {
   });
 }
 
-@DriftDatabase(tables: [Books, Highlights, Notes, Tags, NoteTags, Bookmarks])
+// Composite model for Reading Sessions with Book info
+class ReadingSessionWithBook {
+  final ReadingSessionEntry session;
+  final BookEntry book;
+
+  ReadingSessionWithBook({
+    required this.session,
+    required this.book,
+  });
+}
+
+@DriftDatabase(tables: [Books, Highlights, Notes, Tags, NoteTags, Bookmarks, ReadingSessions])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(impl.openConnection());
 
   AppDatabase.forTesting(super.connection);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration {
     return MigrationStrategy(
       beforeOpen: (details) async {
         await customStatement('PRAGMA foreign_keys = ON');
+      },
+      onUpgrade: (m, from, to) async {
+        if (from < 2) {
+          await m.createTable(readingSessions);
+        }
+        if (from < 3) {
+          await m.addColumn(books, books.genre);
+        }
       },
     );
   }
@@ -135,6 +171,21 @@ class AppDatabase extends _$AppDatabase {
 
   Future<bool> updateBook(BookEntry book) => update(books).replace(book);
 
+  Future<bool> updateBookInfo({
+    required String id,
+    required String title,
+    String? author,
+    String? genre,
+  }) async {
+    final companion = BooksCompanion(
+      title: Value(title),
+      author: author != null ? Value(author) : const Value.absent(),
+      genre: genre != null ? Value(genre) : const Value.absent(),
+    );
+    final count = await (update(books)..where((b) => b.id.equals(id))).write(companion);
+    return count > 0;
+  }
+
   Future<void> updateLastReadPosition({
     required String bookId,
     required int page,
@@ -162,6 +213,19 @@ class AppDatabase extends _$AppDatabase {
 
   Future<int> insertHighlight(HighlightsCompanion highlight) =>
       into(highlights).insert(highlight);
+
+  Future<bool> updateHighlightTextAndColor({
+    required String id,
+    String? selectedText,
+    String? color,
+  }) async {
+    final companion = HighlightsCompanion(
+      selectedText: selectedText != null ? Value(selectedText) : const Value.absent(),
+      color: color != null ? Value(color) : const Value.absent(),
+    );
+    final count = await (update(highlights)..where((h) => h.id.equals(id))).write(companion);
+    return count > 0;
+  }
 
   Future<int> deleteHighlight(String id) =>
       (delete(highlights)..where((h) => h.id.equals(id))).go();
@@ -291,5 +355,48 @@ class AppDatabase extends _$AppDatabase {
     final rows = await query.get();
     return rows.length;
   }
+
+  // --- Reading Sessions Operations ---
+  Stream<List<ReadingSessionWithBook>> watchAllReadingSessionsWithBook() {
+    final query = select(readingSessions).join([
+      innerJoin(books, books.id.equalsExp(readingSessions.bookId)),
+    ])..orderBy([OrderingTerm(expression: readingSessions.startTime, mode: OrderingMode.desc)]);
+
+    return query.watch().map((rows) {
+      return rows.map((row) {
+        return ReadingSessionWithBook(
+          session: row.readTable(readingSessions),
+          book: row.readTable(books),
+        );
+      }).toList();
+    });
+  }
+
+  Future<List<ReadingSessionWithBook>> getAllReadingSessionsWithBook() async {
+    final query = select(readingSessions).join([
+      innerJoin(books, books.id.equalsExp(readingSessions.bookId)),
+    ])..orderBy([OrderingTerm(expression: readingSessions.startTime, mode: OrderingMode.desc)]);
+
+    final rows = await query.get();
+    return rows.map((row) {
+      return ReadingSessionWithBook(
+        session: row.readTable(readingSessions),
+        book: row.readTable(books),
+      );
+    }).toList();
+  }
+
+  Stream<List<ReadingSessionEntry>> watchReadingSessionsForBook(String bookId) {
+    return (select(readingSessions)
+          ..where((s) => s.bookId.equals(bookId))
+          ..orderBy([(s) => OrderingTerm(expression: s.startTime, mode: OrderingMode.desc)]))
+        .watch();
+  }
+
+  Future<int> insertReadingSession(ReadingSessionsCompanion session) =>
+      into(readingSessions).insert(session);
+
+  Future<int> deleteReadingSession(String id) =>
+      (delete(readingSessions)..where((s) => s.id.equals(id))).go();
 }
 

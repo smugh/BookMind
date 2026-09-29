@@ -38,6 +38,7 @@ class AddReflectionSheet extends ConsumerStatefulWidget {
 }
 
 class _AddReflectionSheetState extends ConsumerState<AddReflectionSheet> {
+  late final TextEditingController _quoteController;
   late final TextEditingController _reflectionController;
   late final TextEditingController _tagInputController;
   late String _selectedColor;
@@ -54,6 +55,7 @@ class _AddReflectionSheetState extends ConsumerState<AddReflectionSheet> {
   @override
   void initState() {
     super.initState();
+    _quoteController = TextEditingController(text: widget.quoteText);
     _reflectionController = TextEditingController(text: widget.initialReflection ?? '');
     _tagInputController = TextEditingController();
     _selectedColor = widget.initialColor ?? 'yellow';
@@ -72,6 +74,7 @@ class _AddReflectionSheetState extends ConsumerState<AddReflectionSheet> {
 
   @override
   void dispose() {
+    _quoteController.dispose();
     _reflectionController.dispose();
     _tagInputController.dispose();
     super.dispose();
@@ -88,10 +91,13 @@ class _AddReflectionSheetState extends ConsumerState<AddReflectionSheet> {
   }
 
   Future<void> _saveNote() async {
-    if (_reflectionController.text.trim().isEmpty && widget.quoteText.trim().isEmpty) {
+    final enteredQuote = _quoteController.text.trim();
+    final reflectionText = _reflectionController.text.trim();
+
+    if (reflectionText.isEmpty && enteredQuote.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Tuliskan refleksi atau catatan Anda terlebih dahulu'),
+          content: Text('Tuliskan kutipan atau catatan refleksi Anda terlebih dahulu'),
           duration: Duration(seconds: 2),
         ),
       );
@@ -105,8 +111,8 @@ class _AddReflectionSheetState extends ConsumerState<AddReflectionSheet> {
     try {
       final highlightId = widget.existingHighlightId ?? uuid.v4();
       final noteId = widget.existingNoteId ?? uuid.v4();
-      final quote = widget.quoteText.trim().isNotEmpty
-          ? widget.quoteText
+      final quote = enteredQuote.isNotEmpty
+          ? enteredQuote
           : 'Catatan Halaman ${widget.pageNumber}';
 
       if (widget.existingHighlightId == null) {
@@ -121,9 +127,14 @@ class _AddReflectionSheetState extends ConsumerState<AddReflectionSheet> {
             createdAt: drift.Value(DateTime.now()),
           ),
         );
+      } else {
+        // Update existing highlight text and color
+        await db.updateHighlightTextAndColor(
+          id: highlightId,
+          selectedText: quote,
+          color: _selectedColor,
+        );
       }
-
-      final reflectionText = _reflectionController.text.trim();
 
       if (widget.existingNoteId == null) {
         // Insert new note
@@ -232,8 +243,7 @@ class _AddReflectionSheetState extends ConsumerState<AddReflectionSheet> {
             ),
             const SizedBox(height: 14),
 
-            if (widget.quoteText.trim().isNotEmpty) ...[
-            // 1. COVER POPUP: Highlighted Text Banner
+            // 1. SECTION QUOTES / KUTIPAN BUKU (Editable)
             Container(
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -250,7 +260,7 @@ class _AddReflectionSheetState extends ConsumerState<AddReflectionSheet> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Cover Header Strip
+                  // Header Strip
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
@@ -269,7 +279,7 @@ class _AddReflectionSheetState extends ConsumerState<AddReflectionSheet> {
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          'Kutipan yang Dihighlight',
+                          'Quotes / Kutipan Buku',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
@@ -290,9 +300,9 @@ class _AddReflectionSheetState extends ConsumerState<AddReflectionSheet> {
                     ),
                   ),
 
-                  // Cover Quote Content
+                  // Editable Quote Content
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+                    padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -300,7 +310,7 @@ class _AddReflectionSheetState extends ConsumerState<AddReflectionSheet> {
                           '“',
                           style: TextStyle(
                             fontFamily: 'serif',
-                            fontSize: 28,
+                            fontSize: 26,
                             height: 1,
                             color: AppColors.primaryTerracotta,
                             fontWeight: FontWeight.bold,
@@ -308,22 +318,33 @@ class _AddReflectionSheetState extends ConsumerState<AddReflectionSheet> {
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: Text(
-                            widget.quoteText,
+                          child: TextField(
+                            controller: _quoteController,
+                            maxLines: 4,
+                            minLines: 1,
                             style: AppTypography.quoteText.copyWith(
-                              fontSize: 14,
-                              height: 1.5,
+                              fontSize: 13,
+                              height: 1.45,
                               color: AppColors.primaryCoffee,
                             ),
-                            maxLines: 5,
-                            overflow: TextOverflow.ellipsis,
+                            decoration: const InputDecoration(
+                              hintText: 'Tuliskan quotes atau kutipan penting dari halaman ini...',
+                              hintStyle: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.n500,
+                                fontStyle: FontStyle.italic,
+                              ),
+                              border: InputBorder.none,
+                              isDense: true,
+                              contentPadding: EdgeInsets.zero,
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
 
-                  // Highlight Color Selector inside Cover Footer
+                  // Highlight Color Selector inside Footer
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: const BoxDecoration(
@@ -370,68 +391,8 @@ class _AddReflectionSheetState extends ConsumerState<AddReflectionSheet> {
               ),
             ),
             const SizedBox(height: 16),
-            ] else ...[
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFEFE6D8), width: 1.5),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primaryCoffee.withOpacity(0.04),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFDEEE9),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.edit_note,
-                        size: 24,
-                        color: AppColors.primaryTerracotta,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Catatan Halaman ${widget.pageNumber}',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primaryCoffee,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            widget.bookTitle ?? 'Tuliskan catatan atau pemikiran Anda di bawah',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: AppColors.n500,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
 
-            // 2. DI BAWAH COVER: Catatan Refleksi (Format PRD)
+            // 2. DI BAWAH QUOTES: Catatan Refleksi
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -440,14 +401,6 @@ class _AddReflectionSheetState extends ConsumerState<AddReflectionSheet> {
                   style: AppTypography.titleMedium.copyWith(
                     fontWeight: FontWeight.bold,
                     color: AppColors.primaryCoffee,
-                  ),
-                ),
-                const Text(
-                  'PRD Module 4',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: AppColors.n500,
-                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],

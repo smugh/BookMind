@@ -17,6 +17,7 @@ class SampleDataSeeder {
         totalPages: const Value(320),
         lastReadPage: const Value(1),
         lastReadAt: const Value.absent(),
+        genre: const Value('Self-Development'),
       ),
       BooksCompanion.insert(
         id: 'book_daily_stoic',
@@ -27,6 +28,7 @@ class SampleDataSeeder {
         totalPages: const Value(416),
         lastReadPage: const Value(1),
         lastReadAt: const Value.absent(),
+        genre: const Value('Philosophy'),
       ),
       BooksCompanion.insert(
         id: 'book_deep_work',
@@ -37,6 +39,7 @@ class SampleDataSeeder {
         totalPages: const Value(304),
         lastReadPage: const Value(1),
         lastReadAt: const Value.absent(),
+        genre: const Value('Business & Productivity'),
       ),
       BooksCompanion.insert(
         id: 'book_sapiens',
@@ -47,6 +50,7 @@ class SampleDataSeeder {
         totalPages: const Value(464),
         lastReadPage: const Value(1),
         lastReadAt: const Value.absent(),
+        genre: const Value('History & Science'),
       ),
       BooksCompanion.insert(
         id: 'book_ikigai',
@@ -57,6 +61,7 @@ class SampleDataSeeder {
         totalPages: const Value(208),
         lastReadPage: const Value(1),
         lastReadAt: const Value.absent(),
+        genre: const Value('Self-Development'),
       ),
       BooksCompanion.insert(
         id: 'book_mindset',
@@ -67,6 +72,7 @@ class SampleDataSeeder {
         totalPages: const Value(320),
         lastReadPage: const Value(1),
         lastReadAt: const Value.absent(),
+        genre: const Value('Psychology'),
       ),
     ];
 

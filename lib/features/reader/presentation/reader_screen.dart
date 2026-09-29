@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
@@ -50,6 +51,103 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
 
   ReaderSettings _settings = const ReaderSettings();
 
+  // Reading session recording state (Requirement 1 & 2)
+  bool _isRecording = false;
+  Timer? _sessionTimer;
+  int _sessionDurationSeconds = 0;
+  DateTime? _sessionStartTime;
+  int _sessionStartPage = 1;
+
+  String get _formattedTimer {
+    final hours = _sessionDurationSeconds ~/ 3600;
+    final minutes = (_sessionDurationSeconds % 3600) ~/ 60;
+    final seconds = _sessionDurationSeconds % 60;
+    if (hours > 0) {
+      return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+    }
+    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
+
+  void _startReadingSession() {
+    if (_isRecording) return;
+    setState(() {
+      _isRecording = true;
+      _sessionDurationSeconds = 0;
+      _sessionStartTime = DateTime.now();
+      _sessionStartPage = _currentPage;
+    });
+    _sessionTimer?.cancel();
+    _sessionTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) {
+        setState(() {
+          _sessionDurationSeconds++;
+        });
+      }
+    });
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('⏱️ Sesi membaca dimulai. Waktu membaca sedang dicatat...'),
+        duration: Duration(seconds: 2),
+        backgroundColor: AppColors.primaryCoffee,
+      ),
+    );
+  }
+
+  Future<void> _stopReadingSession([bool silent = false]) async {
+    if (!_isRecording) return;
+    _sessionTimer?.cancel();
+    _sessionTimer = null;
+
+    final durationSecs = _sessionDurationSeconds;
+    final startTime = _sessionStartTime ?? DateTime.now();
+    final endTime = DateTime.now();
+    final startPage = _sessionStartPage;
+    final endPage = _currentPage;
+    int pagesCount = (endPage - startPage).abs() + 1;
+    if (pagesCount < 1) pagesCount = 1;
+
+    setState(() {
+      _isRecording = false;
+      _sessionDurationSeconds = 0;
+      _sessionStartTime = null;
+    });
+
+    if (durationSecs > 0) {
+      try {
+        await ref.read(appDatabaseProvider).insertReadingSession(
+          ReadingSessionsCompanion.insert(
+            id: const Uuid().v4(),
+            bookId: widget.book.id,
+            startTime: startTime,
+            endTime: endTime,
+            durationSeconds: durationSecs,
+            startPage: drift.Value(startPage),
+            endPage: drift.Value(endPage),
+            pagesRead: drift.Value(pagesCount),
+          ),
+        );
+        _updateReadingPosition(_currentPage);
+
+        if (!silent && mounted) {
+          final mins = durationSecs ~/ 60;
+          final secs = durationSecs % 60;
+          final durationStr = mins > 0 ? '$mins m $secs s' : '$secs detik';
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '✅ Sesi membaca disimpan ($durationStr · $pagesCount hal). Statistik diperbarui!',
+              ),
+              duration: const Duration(seconds: 3),
+              backgroundColor: AppColors.primaryTerracotta,
+            ),
+          );
+        }
+      } catch (_) {}
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -57,6 +155,107 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
     _totalPages = widget.book.totalPages > 0 ? widget.book.totalPages : 320;
     _pdfViewerController = PdfViewerController();
     _loadBookBytes();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        Future.delayed(const Duration(milliseconds: 600), () {
+          if (mounted && !_isRecording) {
+            _showStartRecordPrompt();
+          }
+        });
+      }
+    });
+  }
+
+  void _showStartRecordPrompt() {
+    if (_isRecording || !mounted) return;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEE2E2),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.fiber_manual_record,
+                color: Color(0xFFDC2626),
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Text(
+                'Mulai Rekam Sesi?',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primaryCoffee,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Ingin mencatat waktu dan progres membaca "${widget.book.title}"?',
+              style: const TextStyle(fontSize: 14, color: AppColors.n900, height: 1.4),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFBF8F5),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFEFE6D8)),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.insights, size: 20, color: AppColors.primaryTerracotta),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Waktu dan halaman yang Anda baca akan otomatis tercatat ke dalam Statistik Membaca.',
+                      style: TextStyle(fontSize: 12, color: AppColors.n700),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Nanti Saja', style: TextStyle(color: AppColors.n700)),
+          ),
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _startReadingSession();
+            },
+            icon: const Icon(Icons.play_arrow_rounded, size: 18),
+            label: const Text('Mulai Record'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFDC2626),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              elevation: 2,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _loadBookBytes() async {
@@ -71,6 +270,10 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
 
   @override
   void dispose() {
+    _sessionTimer?.cancel();
+    if (_isRecording && _sessionDurationSeconds > 0) {
+      _stopReadingSession(true);
+    }
     _searchQueryController.dispose();
     _pdfViewerController.dispose();
     super.dispose();
@@ -614,9 +817,13 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
         backgroundColor: readerBg,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: readerText),
-          onPressed: () {
+          onPressed: () async {
+            final navigator = Navigator.of(context);
+            if (_isRecording) {
+              await _stopReadingSession(true);
+            }
             _updateReadingPosition(_currentPage);
-            Navigator.pop(context);
+            navigator.pop();
           },
         ),
         title: _isSearching && isPdf && _bookBytes != null
@@ -720,7 +927,89 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
             tooltip: 'Pengaturan Tampilan',
             onPressed: _openReaderSettings,
           ),
-          const SizedBox(width: 4),
+          // Start / Stop Record Reading Session Button (Requirement 1 & 2)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 4),
+            child: InkWell(
+              onTap: () {
+                if (_isRecording) {
+                  _stopReadingSession(false);
+                } else {
+                  _startReadingSession();
+                }
+              },
+              borderRadius: BorderRadius.circular(20),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  gradient: _isRecording
+                      ? const LinearGradient(
+                          colors: [Color(0xFFDC2626), Color(0xFF991B1B)],
+                        )
+                      : const LinearGradient(
+                          colors: [Color(0xFFE11D48), Color(0xFFBE123C)],
+                        ),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: _isRecording ? const Color(0xFFB91C1C) : const Color(0xFF9F1239),
+                    width: 1.2,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: (_isRecording ? const Color(0xFFDC2626) : const Color(0xFFE11D48))
+                          .withOpacity(0.45),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (_isRecording) ...[
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.rectangle,
+                          borderRadius: BorderRadius.all(Radius.circular(1.5)),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        _formattedTimer,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                          fontFeatures: [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                    ] else ...[
+                      const Icon(
+                        Icons.fiber_manual_record,
+                        size: 10,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(width: 5),
+                      const Text(
+                        'Record',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 6),
         ],
       ),
       body: _isLoadingBytes
@@ -729,6 +1018,49 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
             )
           : Stack(
               children: [
+                if (_isRecording)
+                  Positioned(
+                    top: 10,
+                    right: 14,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E293B).withOpacity(0.92),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: const Color(0xFFDC2626), width: 1.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.18),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFEF4444),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Sesi aktif: $_formattedTimer',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              fontFeatures: [FontFeature.tabularFigures()],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 _bookBytes != null && _bookBytes!.isNotEmpty
                     ? (isPdf
                         ? SfPdfViewer.memory(

@@ -30,3 +30,9 @@ final allNotesStreamProvider = StreamProvider<List<NoteWithDetails>>((ref) {
   return db.watchAllNotesWithDetails();
 });
 
+// Stream of all reading sessions with book details
+final allReadingSessionsStreamProvider = StreamProvider<List<ReadingSessionWithBook>>((ref) {
+  final db = ref.watch(appDatabaseProvider);
+  return db.watchAllReadingSessionsWithBook();
+});
+
